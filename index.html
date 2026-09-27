@@ -1,4 +1,3 @@
-html  
 <!DOCTYPE html>  
 <html lang="de">  
 <head>  
@@ -44,7 +43,7 @@ html
         }  
   
         main {  
-            max-width: 1150px;  
+            max-width: 1200px;  
             margin: 25px auto;  
             padding: 0 15px;  
         }  
@@ -75,6 +74,7 @@ html
   
         input {  
             flex: 1;  
+            min-width: 0;  
             padding: 12px;  
             border: 1px solid #cbd5e1;  
             border-radius: 6px;  
@@ -161,7 +161,7 @@ html
             background: #64748b;  
         }  
   
-        ..penalty-miss {  
+        .penalty-miss {  
             background: #be123c;  
         }  
   
@@ -208,6 +208,7 @@ html
             width: 100%;  
             border-collapse: collapse;  
             margin-top: 15px;  
+            min-width: 850px;  
         }  
   
         th,  
@@ -236,13 +237,33 @@ html
             list-style: none;  
             padding: 0;  
             margin: 0;  
-            max-height: 300px;  
+            max-height: 350px;  
             overflow-y: auto;  
         }  
   
-        .event-list li {  
+        .event-item {  
+            display: flex;  
+            justify-content: space-between;  
+            align-items: center;  
+            gap: 10px;  
             border-bottom: 1px solid #e5e7eb;  
             padding: 10px 0;  
+        }  
+  
+        .event-text {  
+            flex: 1;  
+        }  
+  
+        .delete-event-button {  
+            background: #dc2626;  
+            color: white;  
+            padding: 6px 10px;  
+            font-size: 13px;  
+            flex-shrink: 0;  
+        }  
+  
+        .delete-event-button:hover {  
+            background: #b91c1c;  
         }  
   
         @media (max-width: 850px) {  
@@ -276,6 +297,10 @@ html
             header h1 {  
                 font-size: 24px;  
             }  
+  
+            .event-item {  
+                align-items: flex-start;  
+            }  
         }  
     </style>  
 </head>  
@@ -283,7 +308,7 @@ html
 <body>  
   
 <header>  
-    <h1>Spielstatistik</h1>  
+    <h1>TSV Germania Krölpa</h1>  
     <p>Handball-Spielstatistik</p>  
 </header>  
   
@@ -419,9 +444,28 @@ html
     const pdfButton = document.getElementById("pdfButton");  
     const excelButton = document.getElementById("excelButton");  
   
-    let players = JSON.parse(localStorage.getItem("players")) || [];  
-    let events = JSON.parse(localStorage.getItem("events")) || [];  
+    let players = JSON.parse(  
+        localStorage.getItem("players")  
+    ) || [];  
+  
+    let events = JSON.parse(  
+        localStorage.getItem("events")  
+    ) || [];  
+  
     let selectedPlayerId = null;  
+  
+    /*  
+     * Ältere Ereignisse erhalten automatisch eine ID,  
+     * damit sie ebenfalls gelöscht werden können.  
+     */  
+    events = events.map((event, index) => {  
+        return {  
+            ...event,  
+            id: event.id || createUniqueId(index)  
+        };  
+    });  
+  
+    saveData();  
   
     const actionNames = {  
         goals: "Tor",  
@@ -432,18 +476,33 @@ html
         penaltyMisses: "7m Fehlwurf"  
     };  
   
+    function createUniqueId(index = "") {  
+        return Date.now() + "-" +  
+            index + "-" +  
+            Math.random().toString(36).substring(2, 10);  
+    }  
+  
     function saveData() {  
-        localStorage.setItem("players", JSON.stringify(players));  
-        localStorage.setItem("events", JSON.stringify(events));  
+        localStorage.setItem(  
+            "players",  
+            JSON.stringify(players)  
+        );  
+  
+        localStorage.setItem(  
+            "events",  
+            JSON.stringify(events)  
+        );  
     }  
   
     function showMessage(text, isError = true) {  
         message.textContent = text;  
-        message.style.color = isError ? "#dc2626" : "#16a34a";  
+        message.style.color = isError  
+            ? "#dc2626"  
+            : "#16a34a";  
   
         setTimeout(() => {  
             message.textContent = "";  
-        }, 2500);  
+        }, 3000);  
     }  
   
     function escapeHtml(text) {  
@@ -590,12 +649,75 @@ html
             }  
   
             const listItem = document.createElement("li");  
+            listItem.className = "event-item";  
   
-            listItem.textContent =  
-                `${event.time} – ${player.name}: ${actionNames[event.action]}`;  
+            const eventText = document.createElement("span");  
+            eventText.className = "event-text";  
+  
+            eventText.textContent =  
+                `${event.time} – ${player.name}: ` +  
+                `${actionNames[event.action]}`;  
+  
+            const deleteButton = document.createElement("button");  
+            deleteButton.className = "delete-event-button";  
+            deleteButton.textContent = "Löschen";  
+            deleteButton.title = "Diese Eingabe löschen";  
+  
+            deleteButton.addEventListener("click", () => {  
+                deleteEvent(event.id);  
+            });  
+  
+            listItem.appendChild(eventText);  
+            listItem.appendChild(deleteButton);  
   
             eventList.appendChild(listItem);  
         });  
+    }  
+  
+    function deleteEvent(eventId) {  
+        const eventIndex = events.findIndex(  
+            event => event.id === eventId  
+        );  
+  
+        if (eventIndex === -1) {  
+            showMessage(  
+                "Die Eingabe konnte nicht gefunden werden."  
+            );  
+            return;  
+        }  
+  
+        const event = events[eventIndex];  
+  
+        const player = players.find(  
+            player => player.id === event.playerId  
+        );  
+  
+        const playerName = player  
+            ? player.name  
+            : "Unbekannter Spieler";  
+  
+        const actionName =  
+            actionNames[event.action] || event.action;  
+  
+        const confirmed = confirm(  
+            "Möchtest du diese Eingabe wirklich löschen?\n\n" +  
+            `${event.time} – ${playerName}: ${actionName}`  
+        );  
+  
+        if (!confirmed) {  
+            return;  
+        }  
+  
+        events.splice(eventIndex, 1);  
+  
+        saveData();  
+        renderStats();  
+        renderEvents();  
+  
+        showMessage(  
+            "Die Eingabe wurde gelöscht.",  
+            false  
+        );  
     }  
   
     playerForm.addEventListener("submit", function(event) {  
@@ -604,16 +726,21 @@ html
         const name = playerNameInput.value.trim();  
   
         if (name === "") {  
-            showMessage("Bitte einen Spielernamen eingeben.");  
+            showMessage(  
+                "Bitte einen Spielernamen eingeben."  
+            );  
             return;  
         }  
   
         const alreadyExists = players.some(  
-            player => player.name.toLowerCase() === name.toLowerCase()  
+            player =>  
+                player.name.toLowerCase() === name.toLowerCase()  
         );  
   
         if (alreadyExists) {  
-            showMessage("Dieser Spieler ist bereits vorhanden.");  
+            showMessage(  
+                "Dieser Spieler ist bereits vorhanden."  
+            );  
             return;  
         }  
   
@@ -639,7 +766,9 @@ html
     document.querySelectorAll(".action-button").forEach(button => {  
         button.addEventListener("click", function() {  
             if (selectedPlayerId === null) {  
-                showMessage("Bitte zuerst einen Spieler auswählen.");  
+                showMessage(  
+                    "Bitte zuerst einen Spieler auswählen."  
+                );  
                 return;  
             }  
   
@@ -653,6 +782,7 @@ html
             });  
   
             events.push({  
+                id: createUniqueId(),  
                 playerId: selectedPlayerId,  
                 action: action,  
                 time: time  
@@ -667,7 +797,8 @@ html
             );  
   
             showMessage(  
-                `${actionNames[action]} für ${player.name} gespeichert.`,  
+                `${actionNames[action]} für ` +  
+                `${player.name} gespeichert.`,  
                 false  
             );  
         });  
@@ -675,7 +806,8 @@ html
   
     resetButton.addEventListener("click", function() {  
         const confirmed = confirm(  
-            "Möchtest du wirklich alle Spieler und Spieldaten löschen?"  
+            "Möchtest du wirklich alle Spieler und " +  
+            "Spieldaten löschen?"  
         );  
   
         if (!confirmed) {  
@@ -702,13 +834,33 @@ html
         );  
     });  
   
-    async function createPdf() {  
+    function convertToPdfText(text) {  
+        /*  
+         * Die Standard-PDF-Schrift von jsPDF unterstützt  
+         * nicht alle deutschen Sonderzeichen zuverlässig.  
+         */  
+        return String(text)  
+            .replace(/ä/g, "ae")  
+            .replace(/ö/g, "oe")  
+            .replace(/ü/g, "ue")  
+            .replace(/Ä/g, "Ae")  
+            .replace(/Ö/g, "Oe")  
+            .replace(/Ü/g, "Ue")  
+            .replace(/ß/g, "ss");  
+    }  
+  
+    function createPdf() {  
         if (players.length === 0) {  
-            showMessage("Es sind noch keine Spieler vorhanden.");  
+            showMessage(  
+                "Es sind noch keine Spieler vorhanden."  
+            );  
             return;  
         }  
   
-        if (!window.jspdf || !window.jspdf.jsPDF) {  
+        if (  
+            !window.jspdf ||  
+            !window.jspdf.jsPDF  
+        ) {  
             showMessage(  
                 "Die PDF-Bibliothek konnte nicht geladen werden."  
             );  
@@ -720,25 +872,38 @@ html
   
         const now = new Date();  
   
-        const datum = now.toLocaleDateString("de-DE");  
+        const date = now.toLocaleDateString("de-DE");  
   
-        const uhrzeit = now.toLocaleTimeString("de-DE", {  
+        const time = now.toLocaleTimeString("de-DE", {  
             hour: "2-digit",  
             minute: "2-digit"  
         });  
   
         doc.setFontSize(20);  
         doc.setTextColor(29, 78, 216);  
-        doc.text("Spielstatistik", 14, 20);  
+  
+        doc.text(  
+            convertToPdfText("TSV Germania Krölpa"),  
+            14,  
+            20  
+        );  
   
         doc.setFontSize(15);  
         doc.setTextColor(60, 60, 60);  
-        doc.text("Handball-Spielueberblick", 14, 29);  
+  
+        doc.text(  
+            convertToPdfText("Handball-Spielüberblick"),  
+            14,  
+            29  
+        );  
   
         doc.setFontSize(10);  
         doc.setTextColor(90, 90, 90);  
+  
         doc.text(  
-            `Erstellt am: ${datum}, ${uhrzeit} Uhr`,  
+            convertToPdfText(  
+                `Erstellt am: ${date}, ${time} Uhr`  
+            ),  
             14,  
             37  
         );  
@@ -802,7 +967,12 @@ html
   
         doc.setFontSize(15);  
         doc.setTextColor(29, 78, 216);  
-        doc.text("Ereignisverlauf", 14, currentY);  
+  
+        doc.text(  
+            "Ereignisverlauf",  
+            14,  
+            currentY  
+        );  
   
         const eventData = events  
             .map(event => {  
@@ -832,7 +1002,11 @@ html
                     "Aktion"  
                 ]],  
   
-                body: eventData,  
+                body: eventData.map(row =>  
+                    row.map(cell =>  
+                        convertToPdfText(cell)  
+                    )  
+                ),  
   
                 theme: "striped",  
   
@@ -857,10 +1031,10 @@ html
             );  
         }  
   
-        const dateForFilename = datum.replace(/\./g, "-");  
+        const fileDate = date.replace(/\./g, "-");  
   
         doc.save(  
-            `Spielstatistik-Spielueberblick-${dateForFilename}.pdf`  
+            `TSV-Germania-Kroelpa-Spielueberblick-${fileDate}.pdf`  
         );  
   
         showMessage(  
@@ -871,7 +1045,9 @@ html
   
     function createExcel() {  
         if (players.length === 0) {  
-            showMessage("Es sind noch keine Spieler vorhanden.");  
+            showMessage(  
+                "Es sind noch keine Spieler vorhanden."  
+            );  
             return;  
         }  
   
@@ -883,7 +1059,7 @@ html
         }  
   
         const now = new Date();  
-        const datum = now.toLocaleDateString("de-DE");  
+        const date = now.toLocaleDateString("de-DE");  
   
         const statsData = players.map(player => {  
             const stats = getPlayerStats(player.id);  
@@ -963,11 +1139,11 @@ html
             "Ereignisverlauf"  
         );  
   
-        const dateForFilename = datum.replace(/\./g, "-");  
+        const fileDate = date.replace(/\./g, "-");  
   
         XLSX.writeFile(  
             workbook,  
-            `Spielstatistik-Spielueberblick-${dateForFilename}.xlsx`  
+            `TSV-Germania-Kroelpa-Spielueberblick-${fileDate}.xlsx`  
         );  
   
         showMessage(  
@@ -985,4 +1161,4 @@ html
 </script>  
   
 </body>  
-</html>
+</html> 
