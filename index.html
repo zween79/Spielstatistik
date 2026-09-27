@@ -1,0 +1,1164 @@
+<!DOCTYPE html>  
+<html lang="de">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  
+    <title>TSV Germania Krölpa – Spielstatistik</title>  
+  
+    <!-- PDF-Bibliotheken -->  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>  
+  
+    <!-- Excel-Bibliothek -->  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>  
+  
+    <style>  
+        * {  
+            box-sizing: border-box;  
+        }  
+  
+        body {  
+            margin: 0;  
+            font-family: Arial, sans-serif;  
+            background: #eef2f7;  
+            color: #1f2937;  
+        }  
+  
+        header {  
+            background: #1d4ed8;  
+            color: white;  
+            padding: 30px 15px;  
+            text-align: center;  
+        }  
+  
+        header h1 {  
+            margin: 0 0 8px;  
+            font-size: 30px;  
+        }  
+  
+        header p {  
+            margin: 0;  
+            font-size: 17px;  
+        }  
+  
+        main {  
+            max-width: 1200px;  
+            margin: 25px auto;  
+            padding: 0 15px;  
+        }  
+  
+        .grid {  
+            display: grid;  
+            grid-template-columns: 1fr 1fr;  
+            gap: 20px;  
+        }  
+  
+        .card {  
+            background: white;  
+            border-radius: 12px;  
+            padding: 20px;  
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);  
+            margin-bottom: 20px;  
+        }  
+  
+        h2 {  
+            margin-top: 0;  
+            color: #1d4ed8;  
+        }  
+  
+        form {  
+            display: flex;  
+            gap: 10px;  
+        }  
+  
+        input {  
+            flex: 1;  
+            min-width: 0;  
+            padding: 12px;  
+            border: 1px solid #cbd5e1;  
+            border-radius: 6px;  
+            font-size: 16px;  
+        }  
+  
+        button {  
+            border: none;  
+            border-radius: 6px;  
+            padding: 11px 15px;  
+            cursor: pointer;  
+            font-size: 15px;  
+            transition: 0.2s;  
+        }  
+  
+        button:hover {  
+            opacity: 0.85;  
+            transform: translateY(-1px);  
+        }  
+  
+        .add-button {  
+            background: #16a34a;  
+            color: white;  
+        }  
+  
+        .reset-button {  
+            background: #dc2626;  
+            color: white;  
+            margin-top: 15px;  
+        }  
+  
+        .player-list {  
+            display: flex;  
+            flex-wrap: wrap;  
+            gap: 10px;  
+            margin-top: 15px;  
+        }  
+  
+        .player-button {  
+            background: #e0e7ff;  
+            color: #1e3a8a;  
+        }  
+  
+        .player-button.selected {  
+            background: #1d4ed8;  
+            color: white;  
+            font-weight: bold;  
+        }  
+  
+        .selected-player {  
+            margin: 15px 0;  
+            font-weight: bold;  
+            color: #111827;  
+        }  
+  
+        .actions {  
+            display: grid;  
+            grid-template-columns: repeat(2, 1fr);  
+            gap: 10px;  
+        }  
+  
+        .action-button {  
+            color: white;  
+            font-weight: bold;  
+        }  
+  
+        .goal {  
+            background: #16a34a;  
+        }  
+  
+        .assist {  
+            background: #9333ea;  
+        }  
+  
+        .save {  
+            background: #0891b2;  
+        }  
+  
+        .penalty {  
+            background: #ea580c;  
+        }  
+  
+        .miss {  
+            background: #64748b;  
+        }  
+  
+        .penalty-miss {  
+            background: #be123c;  
+        }  
+  
+        .message {  
+            min-height: 22px;  
+            margin-top: 10px;  
+            font-weight: bold;  
+        }  
+  
+        .overview-header {  
+            display: flex;  
+            justify-content: space-between;  
+            align-items: center;  
+            gap: 15px;  
+        }  
+  
+        .overview-header h2 {  
+            margin-bottom: 0;  
+        }  
+  
+        .export-buttons {  
+            display: flex;  
+            gap: 10px;  
+            flex-wrap: wrap;  
+        }  
+  
+        .pdf-button {  
+            background: #7c3aed;  
+            color: white;  
+            font-weight: bold;  
+        }  
+  
+        .excel-button {  
+            background: #15803d;  
+            color: white;  
+            font-weight: bold;  
+        }  
+  
+        .table-container {  
+            overflow-x: auto;  
+        }  
+  
+        table {  
+            width: 100%;  
+            border-collapse: collapse;  
+            margin-top: 15px;  
+            min-width: 850px;  
+        }  
+  
+        th,  
+        td {  
+            padding: 12px;  
+            text-align: center;  
+            border-bottom: 1px solid #e5e7eb;  
+        }  
+  
+        th {  
+            background: #eff6ff;  
+            color: #1e3a8a;  
+        }  
+  
+        td:first-child,  
+        th:first-child {  
+            text-align: left;  
+        }  
+  
+        .empty {  
+            color: #64748b;  
+            font-style: italic;  
+        }  
+  
+        .event-list {  
+            list-style: none;  
+            padding: 0;  
+            margin: 0;  
+            max-height: 350px;  
+            overflow-y: auto;  
+        }  
+  
+        .event-item {  
+            display: flex;  
+            justify-content: space-between;  
+            align-items: center;  
+            gap: 10px;  
+            border-bottom: 1px solid #e5e7eb;  
+            padding: 10px 0;  
+        }  
+  
+        .event-text {  
+            flex: 1;  
+        }  
+  
+        .delete-event-button {  
+            background: #dc2626;  
+            color: white;  
+            padding: 6px 10px;  
+            font-size: 13px;  
+            flex-shrink: 0;  
+        }  
+  
+        .delete-event-button:hover {  
+            background: #b91c1c;  
+        }  
+  
+        @media (max-width: 850px) {  
+            .grid {  
+                grid-template-columns: 1fr;  
+            }  
+        }  
+  
+        @media (max-width: 650px) {  
+            form {  
+                flex-direction: column;  
+            }  
+  
+            .actions {  
+                grid-template-columns: 1fr;  
+            }  
+  
+            .overview-header {  
+                flex-direction: column;  
+                align-items: stretch;  
+            }  
+  
+            .export-buttons {  
+                flex-direction: column;  
+            }  
+  
+            .export-buttons button {  
+                width: 100%;  
+            }  
+  
+            header h1 {  
+                font-size: 24px;  
+            }  
+  
+            .event-item {  
+                align-items: flex-start;  
+            }  
+        }  
+    </style>  
+</head>  
+  
+<body>  
+  
+<header>  
+    <h1>TSV Germania Krölpa</h1>  
+    <p>Handball-Spielstatistik</p>  
+</header>  
+  
+<main>  
+  
+    <div class="grid">  
+  
+        <section class="card">  
+            <h2>1. Spieler verwalten</h2>  
+  
+            <form id="playerForm">  
+                <input  
+                    type="text"  
+                    id="playerName"  
+                    placeholder="Spielernamen eingeben"  
+                    required  
+                >  
+  
+                <button type="submit" class="add-button">  
+                    Spieler hinzufügen  
+                </button>  
+            </form>  
+  
+            <div id="playerList" class="player-list">  
+                <p class="empty">Noch keine Spieler vorhanden.</p>  
+            </div>  
+  
+            <button id="resetButton" class="reset-button">  
+                Spiel zurücksetzen  
+            </button>  
+        </section>  
+  
+        <section class="card">  
+            <h2>2. Aktion erfassen</h2>  
+  
+            <div id="selectedPlayer" class="selected-player">  
+                Bitte zuerst einen Spieler auswählen.  
+            </div>  
+  
+            <div class="actions">  
+                <button class="action-button goal" data-action="goals">  
+                    ⚽ Tor  
+                </button>  
+  
+                <button class="action-button assist" data-action="assists">  
+                    🎯 Vorlage  
+                </button>  
+  
+                <button class="action-button save" data-action="saves">  
+                    🧤 Parade  
+                </button>  
+  
+                <button class="action-button penalty" data-action="penalties">  
+                    7-Meter geworfen  
+                </button>  
+  
+                <button class="action-button miss" data-action="misses">  
+                    Fehlwurf  
+                </button>  
+  
+                <button class="action-button penalty-miss" data-action="penaltyMisses">  
+                    7m Fehlwurf  
+                </button>  
+            </div>  
+  
+            <div id="message" class="message"></div>  
+        </section>  
+  
+    </div>  
+  
+    <section class="card">  
+        <div class="overview-header">  
+            <h2>Spielüberblick</h2>  
+  
+            <div class="export-buttons">  
+                <button id="pdfButton" class="pdf-button">  
+                    PDF erzeugen  
+                </button>  
+  
+                <button id="excelButton" class="excel-button">  
+                    Excel herunterladen  
+                </button>  
+            </div>  
+        </div>  
+  
+        <div class="table-container">  
+            <table>  
+                <thead>  
+                    <tr>  
+                        <th>Spieler</th>  
+                        <th>Tore</th>  
+                        <th>Vorlagen</th>  
+                        <th>Paraden</th>  
+                        <th>7-Meter</th>  
+                        <th>Fehlwürfe</th>  
+                        <th>7m Fehlwürfe</th>  
+                        <th>Gesamtaktionen</th>  
+                    </tr>  
+                </thead>  
+  
+                <tbody id="statsTable">  
+                    <tr>  
+                        <td colspan="8" class="empty">  
+                            Noch keine Daten vorhanden.  
+                        </td>  
+                    </tr>  
+                </tbody>  
+            </table>  
+        </div>  
+    </section>  
+  
+    <section class="card">  
+        <h2>Ereignisverlauf</h2>  
+  
+        <ul id="eventList" class="event-list">  
+            <li class="empty">  
+                Noch keine Aktionen erfasst.  
+            </li>  
+        </ul>  
+    </section>  
+  
+</main>  
+  
+<script>  
+    const playerForm = document.getElementById("playerForm");  
+    const playerNameInput = document.getElementById("playerName");  
+    const playerList = document.getElementById("playerList");  
+    const selectedPlayerText = document.getElementById("selectedPlayer");  
+    const statsTable = document.getElementById("statsTable");  
+    const eventList = document.getElementById("eventList");  
+    const message = document.getElementById("message");  
+    const resetButton = document.getElementById("resetButton");  
+    const pdfButton = document.getElementById("pdfButton");  
+    const excelButton = document.getElementById("excelButton");  
+  
+    let players = JSON.parse(  
+        localStorage.getItem("players")  
+    ) || [];  
+  
+    let events = JSON.parse(  
+        localStorage.getItem("events")  
+    ) || [];  
+  
+    let selectedPlayerId = null;  
+  
+    /*  
+     * Ältere Ereignisse erhalten automatisch eine ID,  
+     * damit sie ebenfalls gelöscht werden können.  
+     */  
+    events = events.map((event, index) => {  
+        return {  
+            ...event,  
+            id: event.id || createUniqueId(index)  
+        };  
+    });  
+  
+    saveData();  
+  
+    const actionNames = {  
+        goals: "Tor",  
+        assists: "Vorlage",  
+        saves: "Parade",  
+        penalties: "7-Meter geworfen",  
+        misses: "Fehlwurf",  
+        penaltyMisses: "7m Fehlwurf"  
+    };  
+  
+    function createUniqueId(index = "") {  
+        return Date.now() + "-" +  
+            index + "-" +  
+            Math.random().toString(36).substring(2, 10);  
+    }  
+  
+    function saveData() {  
+        localStorage.setItem(  
+            "players",  
+            JSON.stringify(players)  
+        );  
+  
+        localStorage.setItem(  
+            "events",  
+            JSON.stringify(events)  
+        );  
+    }  
+  
+    function showMessage(text, isError = true) {  
+        message.textContent = text;  
+        message.style.color = isError  
+            ? "#dc2626"  
+            : "#16a34a";  
+  
+        setTimeout(() => {  
+            message.textContent = "";  
+        }, 3000);  
+    }  
+  
+    function escapeHtml(text) {  
+        const div = document.createElement("div");  
+        div.textContent = text;  
+        return div.innerHTML;  
+    }  
+  
+    function renderPlayers() {  
+        playerList.innerHTML = "";  
+  
+        if (players.length === 0) {  
+            playerList.innerHTML =  
+                '<p class="empty">Noch keine Spieler vorhanden.</p>';  
+            return;  
+        }  
+  
+        players.forEach(player => {  
+            const button = document.createElement("button");  
+  
+            button.className = "player-button";  
+            button.textContent = player.name;  
+  
+            if (player.id === selectedPlayerId) {  
+                button.classList.add("selected");  
+            }  
+  
+            button.addEventListener("click", () => {  
+                selectedPlayerId = player.id;  
+  
+                selectedPlayerText.textContent =  
+                    `Ausgewählter Spieler: ${player.name}`;  
+  
+                renderPlayers();  
+  
+                showMessage(  
+                    `Spieler „${player.name}“ ausgewählt.`,  
+                    false  
+                );  
+            });  
+  
+            playerList.appendChild(button);  
+        });  
+    }  
+  
+    function getPlayerStats(playerId) {  
+        const playerEvents = events.filter(  
+            event => event.playerId === playerId  
+        );  
+  
+        const goals = playerEvents.filter(  
+            event => event.action === "goals"  
+        ).length;  
+  
+        const assists = playerEvents.filter(  
+            event => event.action === "assists"  
+        ).length;  
+  
+        const saves = playerEvents.filter(  
+            event => event.action === "saves"  
+        ).length;  
+  
+        const penalties = playerEvents.filter(  
+            event => event.action === "penalties"  
+        ).length;  
+  
+        const misses = playerEvents.filter(  
+            event => event.action === "misses"  
+        ).length;  
+  
+        const penaltyMisses = playerEvents.filter(  
+            event => event.action === "penaltyMisses"  
+        ).length;  
+  
+        const total =  
+            goals +  
+            assists +  
+            saves +  
+            penalties +  
+            misses +  
+            penaltyMisses;  
+  
+        return {  
+            goals,  
+            assists,  
+            saves,  
+            penalties,  
+            misses,  
+            penaltyMisses,  
+            total  
+        };  
+    }  
+  
+    function renderStats() {  
+        statsTable.innerHTML = "";  
+  
+        if (players.length === 0) {  
+            statsTable.innerHTML = `  
+                <tr>  
+                    <td colspan="8" class="empty">  
+                        Noch keine Daten vorhanden.  
+                    </td>  
+                </tr>  
+            `;  
+  
+            return;  
+        }  
+  
+        players.forEach(player => {  
+            const stats = getPlayerStats(player.id);  
+            const row = document.createElement("tr");  
+  
+            row.innerHTML = `  
+                <td>${escapeHtml(player.name)}</td>  
+                <td>${stats.goals}</td>  
+                <td>${stats.assists}</td>  
+                <td>${stats.saves}</td>  
+                <td>${stats.penalties}</td>  
+                <td>${stats.misses}</td>  
+                <td>${stats.penaltyMisses}</td>  
+                <td><strong>${stats.total}</strong></td>  
+            `;  
+  
+            statsTable.appendChild(row);  
+        });  
+    }  
+  
+    function renderEvents() {  
+        eventList.innerHTML = "";  
+  
+        if (events.length === 0) {  
+            eventList.innerHTML =  
+                '<li class="empty">Noch keine Aktionen erfasst.</li>';  
+            return;  
+        }  
+  
+        [...events].reverse().forEach(event => {  
+            const player = players.find(  
+                player => player.id === event.playerId  
+            );  
+  
+            if (!player) {  
+                return;  
+            }  
+  
+            const listItem = document.createElement("li");  
+            listItem.className = "event-item";  
+  
+            const eventText = document.createElement("span");  
+            eventText.className = "event-text";  
+  
+            eventText.textContent =  
+                `${event.time} – ${player.name}: ` +  
+                `${actionNames[event.action]}`;  
+  
+            const deleteButton = document.createElement("button");  
+            deleteButton.className = "delete-event-button";  
+            deleteButton.textContent = "Löschen";  
+            deleteButton.title = "Diese Eingabe löschen";  
+  
+            deleteButton.addEventListener("click", () => {  
+                deleteEvent(event.id);  
+            });  
+  
+            listItem.appendChild(eventText);  
+            listItem.appendChild(deleteButton);  
+  
+            eventList.appendChild(listItem);  
+        });  
+    }  
+  
+    function deleteEvent(eventId) {  
+        const eventIndex = events.findIndex(  
+            event => event.id === eventId  
+        );  
+  
+        if (eventIndex === -1) {  
+            showMessage(  
+                "Die Eingabe konnte nicht gefunden werden."  
+            );  
+            return;  
+        }  
+  
+        const event = events[eventIndex];  
+  
+        const player = players.find(  
+            player => player.id === event.playerId  
+        );  
+  
+        const playerName = player  
+            ? player.name  
+            : "Unbekannter Spieler";  
+  
+        const actionName =  
+            actionNames[event.action] || event.action;  
+  
+        const confirmed = confirm(  
+            "Möchtest du diese Eingabe wirklich löschen?\n\n" +  
+            `${event.time} – ${playerName}: ${actionName}`  
+        );  
+  
+        if (!confirmed) {  
+            return;  
+        }  
+  
+        events.splice(eventIndex, 1);  
+  
+        saveData();  
+        renderStats();  
+        renderEvents();  
+  
+        showMessage(  
+            "Die Eingabe wurde gelöscht.",  
+            false  
+        );  
+    }  
+  
+    playerForm.addEventListener("submit", function(event) {  
+        event.preventDefault();  
+  
+        const name = playerNameInput.value.trim();  
+  
+        if (name === "") {  
+            showMessage(  
+                "Bitte einen Spielernamen eingeben."  
+            );  
+            return;  
+        }  
+  
+        const alreadyExists = players.some(  
+            player =>  
+                player.name.toLowerCase() === name.toLowerCase()  
+        );  
+  
+        if (alreadyExists) {  
+            showMessage(  
+                "Dieser Spieler ist bereits vorhanden."  
+            );  
+            return;  
+        }  
+  
+        const newPlayer = {  
+            id: Date.now(),  
+            name: name  
+        };  
+  
+        players.push(newPlayer);  
+        saveData();  
+  
+        playerNameInput.value = "";  
+  
+        renderPlayers();  
+        renderStats();  
+  
+        showMessage(  
+            `Spieler „${name}“ wurde hinzugefügt.`,  
+            false  
+        );  
+    });  
+  
+    document.querySelectorAll(".action-button").forEach(button => {  
+        button.addEventListener("click", function() {  
+            if (selectedPlayerId === null) {  
+                showMessage(  
+                    "Bitte zuerst einen Spieler auswählen."  
+                );  
+                return;  
+            }  
+  
+            const action = this.dataset.action;  
+            const now = new Date();  
+  
+            const time = now.toLocaleTimeString("de-DE", {  
+                hour: "2-digit",  
+                minute: "2-digit",  
+                second: "2-digit"  
+            });  
+  
+            events.push({  
+                id: createUniqueId(),  
+                playerId: selectedPlayerId,  
+                action: action,  
+                time: time  
+            });  
+  
+            saveData();  
+            renderStats();  
+            renderEvents();  
+  
+            const player = players.find(  
+                player => player.id === selectedPlayerId  
+            );  
+  
+            showMessage(  
+                `${actionNames[action]} für ` +  
+                `${player.name} gespeichert.`,  
+                false  
+            );  
+        });  
+    });  
+  
+    resetButton.addEventListener("click", function() {  
+        const confirmed = confirm(  
+            "Möchtest du wirklich alle Spieler und " +  
+            "Spieldaten löschen?"  
+        );  
+  
+        if (!confirmed) {  
+            return;  
+        }  
+  
+        players = [];  
+        events = [];  
+        selectedPlayerId = null;  
+  
+        localStorage.removeItem("players");  
+        localStorage.removeItem("events");  
+  
+        selectedPlayerText.textContent =  
+            "Bitte zuerst einen Spieler auswählen.";  
+  
+        renderPlayers();  
+        renderStats();  
+        renderEvents();  
+  
+        showMessage(  
+            "Das Spiel wurde zurückgesetzt.",  
+            false  
+        );  
+    });  
+  
+    function convertToPdfText(text) {  
+        /*  
+         * Die Standard-PDF-Schrift von jsPDF unterstützt  
+         * nicht alle deutschen Sonderzeichen zuverlässig.  
+         */  
+        return String(text)  
+            .replace(/ä/g, "ae")  
+            .replace(/ö/g, "oe")  
+            .replace(/ü/g, "ue")  
+            .replace(/Ä/g, "Ae")  
+            .replace(/Ö/g, "Oe")  
+            .replace(/Ü/g, "Ue")  
+            .replace(/ß/g, "ss");  
+    }  
+  
+    function createPdf() {  
+        if (players.length === 0) {  
+            showMessage(  
+                "Es sind noch keine Spieler vorhanden."  
+            );  
+            return;  
+        }  
+  
+        if (  
+            !window.jspdf ||  
+            !window.jspdf.jsPDF  
+        ) {  
+            showMessage(  
+                "Die PDF-Bibliothek konnte nicht geladen werden."  
+            );  
+            return;  
+        }  
+  
+        const { jsPDF } = window.jspdf;  
+        const doc = new jsPDF();  
+  
+        const now = new Date();  
+  
+        const date = now.toLocaleDateString("de-DE");  
+  
+        const time = now.toLocaleTimeString("de-DE", {  
+            hour: "2-digit",  
+            minute: "2-digit"  
+        });  
+  
+        doc.setFontSize(20);  
+        doc.setTextColor(29, 78, 216);  
+  
+        doc.text(  
+            convertToPdfText("TSV Germania Krölpa"),  
+            14,  
+            20  
+        );  
+  
+        doc.setFontSize(15);  
+        doc.setTextColor(60, 60, 60);  
+  
+        doc.text(  
+            convertToPdfText("Handball-Spielüberblick"),  
+            14,  
+            29  
+        );  
+  
+        doc.setFontSize(10);  
+        doc.setTextColor(90, 90, 90);  
+  
+        doc.text(  
+            convertToPdfText(  
+                `Erstellt am: ${date}, ${time} Uhr`  
+            ),  
+            14,  
+            37  
+        );  
+  
+        const tableData = players.map(player => {  
+            const stats = getPlayerStats(player.id);  
+  
+            return [  
+                player.name,  
+                stats.goals,  
+                stats.assists,  
+                stats.saves,  
+                stats.penalties,  
+                stats.misses,  
+                stats.penaltyMisses,  
+                stats.total  
+            ];  
+        });  
+  
+        doc.autoTable({  
+            startY: 45,  
+  
+            head: [[  
+                "Spieler",  
+                "Tore",  
+                "Vorlagen",  
+                "Paraden",  
+                "7-Meter",  
+                "Fehlwuerfe",  
+                "7m Fehlwuerfe",  
+                "Gesamt"  
+            ]],  
+  
+            body: tableData,  
+  
+            theme: "grid",  
+  
+            styles: {  
+                fontSize: 8,  
+                cellPadding: 3  
+            },  
+  
+            headStyles: {  
+                fillColor: [29, 78, 216],  
+                textColor: 255,  
+                halign: "center"  
+            },  
+  
+            bodyStyles: {  
+                halign: "center"  
+            },  
+  
+            columnStyles: {  
+                0: {  
+                    halign: "left"  
+                }  
+            }  
+        });  
+  
+        let currentY = doc.lastAutoTable.finalY + 15;  
+  
+        doc.setFontSize(15);  
+        doc.setTextColor(29, 78, 216);  
+  
+        doc.text(  
+            "Ereignisverlauf",  
+            14,  
+            currentY  
+        );  
+  
+        const eventData = events  
+            .map(event => {  
+                const player = players.find(  
+                    player => player.id === event.playerId  
+                );  
+  
+                if (!player) {  
+                    return null;  
+                }  
+  
+                return [  
+                    event.time,  
+                    player.name,  
+                    actionNames[event.action]  
+                ];  
+            })  
+            .filter(event => event !== null);  
+  
+        if (eventData.length > 0) {  
+            doc.autoTable({  
+                startY: currentY + 5,  
+  
+                head: [[  
+                    "Uhrzeit",  
+                    "Spieler",  
+                    "Aktion"  
+                ]],  
+  
+                body: eventData.map(row =>  
+                    row.map(cell =>  
+                        convertToPdfText(cell)  
+                    )  
+                ),  
+  
+                theme: "striped",  
+  
+                styles: {  
+                    fontSize: 10,  
+                    cellPadding: 4  
+                },  
+  
+                headStyles: {  
+                    fillColor: [124, 58, 237],  
+                    textColor: 255  
+                }  
+            });  
+        } else {  
+            doc.setFontSize(10);  
+            doc.setTextColor(90, 90, 90);  
+  
+            doc.text(  
+                "Es wurden noch keine Aktionen erfasst.",  
+                14,  
+                currentY + 8  
+            );  
+        }  
+  
+        const fileDate = date.replace(/\./g, "-");  
+  
+        doc.save(  
+            `TSV-Germania-Kroelpa-Spielueberblick-${fileDate}.pdf`  
+        );  
+  
+        showMessage(  
+            "PDF wurde erfolgreich erzeugt.",  
+            false  
+        );  
+    }  
+  
+    function createExcel() {  
+        if (players.length === 0) {  
+            showMessage(  
+                "Es sind noch keine Spieler vorhanden."  
+            );  
+            return;  
+        }  
+  
+        if (typeof XLSX === "undefined") {  
+            showMessage(  
+                "Die Excel-Bibliothek konnte nicht geladen werden."  
+            );  
+            return;  
+        }  
+  
+        const now = new Date();  
+        const date = now.toLocaleDateString("de-DE");  
+  
+        const statsData = players.map(player => {  
+            const stats = getPlayerStats(player.id);  
+  
+            return {  
+                "Spieler": player.name,  
+                "Tore": stats.goals,  
+                "Vorlagen": stats.assists,  
+                "Paraden": stats.saves,  
+                "7-Meter geworfen": stats.penalties,  
+                "Fehlwürfe": stats.misses,  
+                "7m Fehlwürfe": stats.penaltyMisses,  
+                "Gesamtaktionen": stats.total  
+            };  
+        });  
+  
+        const eventData = events  
+            .map(event => {  
+                const player = players.find(  
+                    player => player.id === event.playerId  
+                );  
+  
+                if (!player) {  
+                    return null;  
+                }  
+  
+                return {  
+                    "Uhrzeit": event.time,  
+                    "Spieler": player.name,  
+                    "Aktion": actionNames[event.action]  
+                };  
+            })  
+            .filter(event => event !== null);  
+  
+        const workbook = XLSX.utils.book_new();  
+  
+        const statsWorksheet =  
+            XLSX.utils.json_to_sheet(statsData);  
+  
+        const eventWorksheet =  
+            XLSX.utils.json_to_sheet(  
+                eventData.length > 0  
+                    ? eventData  
+                    : [{  
+                        "Uhrzeit": "",  
+                        "Spieler": "",  
+                        "Aktion": "Keine Aktionen erfasst"  
+                    }]  
+            );  
+  
+        statsWorksheet["!cols"] = [  
+            { wch: 25 },  
+            { wch: 10 },  
+            { wch: 12 },  
+            { wch: 12 },  
+            { wch: 18 },  
+            { wch: 12 },  
+            { wch: 15 },  
+            { wch: 18 }  
+        ];  
+  
+        eventWorksheet["!cols"] = [  
+            { wch: 12 },  
+            { wch: 25 },  
+            { wch: 25 }  
+        ];  
+  
+        XLSX.utils.book_append_sheet(  
+            workbook,  
+            statsWorksheet,  
+            "Spielüberblick"  
+        );  
+  
+        XLSX.utils.book_append_sheet(  
+            workbook,  
+            eventWorksheet,  
+            "Ereignisverlauf"  
+        );  
+  
+        const fileDate = date.replace(/\./g, "-");  
+  
+        XLSX.writeFile(  
+            workbook,  
+            `TSV-Germania-Kroelpa-Spielueberblick-${fileDate}.xlsx`  
+        );  
+  
+        showMessage(  
+            "Excel-Datei wurde erfolgreich heruntergeladen.",  
+            false  
+        );  
+    }  
+  
+    pdfButton.addEventListener("click", createPdf);  
+    excelButton.addEventListener("click", createExcel);  
+  
+    renderPlayers();  
+    renderStats();  
+    renderEvents();  
+</script>  
+  
+</body>  
+</html> 
