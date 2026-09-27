@@ -4,7 +4,7 @@
     <meta charset="UTF-8">  
     <meta name="viewport" content="width=device-width, initial-scale=1.0">  
   
-    <title>TSV Germania Krölpa – Spielstatistik</title>  
+    <title>Handball – Spielstatistik</title>  
   
     <!-- PDF-Bibliotheken -->  
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>  
@@ -308,7 +308,7 @@
 <body>  
   
 <header>  
-    <h1>TSV Germania Krölpa</h1>  
+    <h1>POWERPLAY</h1>  
     <p>Handball-Spielstatistik</p>  
 </header>  
   
@@ -362,7 +362,7 @@
                 </button>  
   
                 <button class="action-button penalty" data-action="penalties">  
-                    7-Meter geworfen  
+                    7-Meter   
                 </button>  
   
                 <button class="action-button miss" data-action="misses">  
@@ -471,7 +471,7 @@
         goals: "Tor",  
         assists: "Vorlage",  
         saves: "Parade",  
-        penalties: "7-Meter geworfen",  
+        penalties: "7-Meter",  
         misses: "Fehlwurf",  
         penaltyMisses: "7m Fehlwurf"  
     };  
@@ -1034,7 +1034,7 @@
         const fileDate = date.replace(/\./g, "-");  
   
         doc.save(  
-            `TSV-Germania-Kroelpa-Spielueberblick-${fileDate}.pdf`  
+            `Handball-Spielueberblick-${fileDate}.pdf`  
         );  
   
         showMessage(  
@@ -1069,7 +1069,7 @@
                 "Tore": stats.goals,  
                 "Vorlagen": stats.assists,  
                 "Paraden": stats.saves,  
-                "7-Meter geworfen": stats.penalties,  
+                "7-Meter": stats.penalties,  
                 "Fehlwürfe": stats.misses,  
                 "7m Fehlwürfe": stats.penaltyMisses,  
                 "Gesamtaktionen": stats.total  
@@ -1143,7 +1143,7 @@
   
         XLSX.writeFile(  
             workbook,  
-            `TSV-Germania-Kroelpa-Spielueberblick-${fileDate}.xlsx`  
+            `Handball-Spielueberblick-${fileDate}.xlsx`  
         );  
   
         showMessage(  
