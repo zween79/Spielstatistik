@@ -4,7 +4,7 @@
     <meta charset="UTF-8">  
     <meta name="viewport" content="width=device-width, initial-scale=1.0">  
   
-    <title>Handball – Spielstatistik</title>  
+    <title>POWERPLAY – Spielstatistik</title>  
   
     <!-- PDF-Bibliotheken -->  
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>  
@@ -108,66 +108,46 @@
   
         .player-list {  
             display: flex;  
-            flex-wrap: wrap;  
-            gap: 10px;  
+            flex-direction: column;  
+            gap: 8px;  
             margin-top: 15px;  
         }  
   
-        .player-button {  
+        .player-row {  
+            display: flex;  
+            gap: 8px;  
+        }  
+  
+        .player-select-button {  
+            flex: 1;  
             background: #e0e7ff;  
             color: #1e3a8a;  
+            text-align: left;  
         }  
   
-        .player-button.selected {  
-            background: #1d4ed8;  
+        .delete-player-button,  
+        .delete-event-button {  
+            background: #dc2626;  
             color: white;  
-            font-weight: bold;  
         }  
   
-        .selected-player {  
-            margin: 15px 0;  
-            font-weight: bold;  
-            color: #111827;  
+        .delete-player-button {  
+            padding: 8px 12px;  
         }  
   
-        .actions {  
-            display: grid;  
-            grid-template-columns: repeat(2, 1fr);  
-            gap: 10px;  
+        .delete-event-button {  
+            padding: 6px 10px;  
+            font-size: 13px;  
         }  
   
-        .action-button {  
-            color: white;  
-            font-weight: bold;  
-        }  
-  
-        .goal {  
-            background: #16a34a;  
-        }  
-  
-        .assist {  
-            background: #9333ea;  
-        }  
-  
-        .save {  
-            background: #0891b2;  
-        }  
-  
-        .penalty {  
-            background: #ea580c;  
-        }  
-  
-        .miss {  
-            background: #64748b;  
-        }  
-  
-        .penalty-miss {  
-            background: #be123c;  
+        .empty {  
+            color: #64748b;  
+            font-style: italic;  
         }  
   
         .message {  
             min-height: 22px;  
-            margin-top: 10px;  
+            margin-top: 15px;  
             font-weight: bold;  
         }  
   
@@ -206,9 +186,9 @@
   
         table {  
             width: 100%;  
+            min-width: 850px;  
             border-collapse: collapse;  
             margin-top: 15px;  
-            min-width: 850px;  
         }  
   
         th,  
@@ -223,14 +203,9 @@
             color: #1e3a8a;  
         }  
   
-        td:first-child,  
-        th:first-child {  
+        th:first-child,  
+        td:first-child {  
             text-align: left;  
-        }  
-  
-        .empty {  
-            color: #64748b;  
-            font-style: italic;  
         }  
   
         .event-list {  
@@ -246,24 +221,105 @@
             justify-content: space-between;  
             align-items: center;  
             gap: 10px;  
-            border-bottom: 1px solid #e5e7eb;  
             padding: 10px 0;  
+            border-bottom: 1px solid #e5e7eb;  
         }  
   
         .event-text {  
             flex: 1;  
         }  
   
-        .delete-event-button {  
-            background: #dc2626;  
-            color: white;  
-            padding: 6px 10px;  
-            font-size: 13px;  
-            flex-shrink: 0;  
+        /*  
+         * Popup-Fenster  
+         */  
+        .modal-overlay {  
+            display: none;  
+            position: fixed;  
+            z-index: 1000;  
+            inset: 0;  
+            background: rgba(15, 23, 42, 0.65);  
+            align-items: center;  
+            justify-content: center;  
+            padding: 15px;  
         }  
   
-        .delete-event-button:hover {  
-            background: #b91c1c;  
+        .modal-overlay.visible {  
+            display: flex;  
+        }  
+  
+        .modal {  
+            width: 100%;  
+            max-width: 500px;  
+            background: white;  
+            border-radius: 14px;  
+            padding: 25px;  
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.3);  
+            animation: popup 0.18s ease-out;  
+        }  
+  
+        @keyframes popup {  
+            from {  
+                opacity: 0;  
+                transform: scale(0.92);  
+            }  
+  
+            to {  
+                opacity: 1;  
+                transform: scale(1);  
+            }  
+        }  
+  
+        .modal h2 {  
+            margin-bottom: 8px;  
+        }  
+  
+        .modal-player-name {  
+            margin-top: 0;  
+            margin-bottom: 20px;  
+            font-weight: bold;  
+            color: #374151;  
+        }  
+  
+        .action-grid {  
+            display: grid;  
+            grid-template-columns: repeat(2, 1fr);  
+            gap: 10px;  
+        }  
+  
+        .action-button {  
+            color: white;  
+            font-weight: bold;  
+        }  
+  
+        .goal {  
+            background: #16a34a;  
+        }  
+  
+        .assist {  
+            background: #9333ea;  
+        }  
+  
+        .save {  
+            background: #0891b2;  
+        }  
+  
+        .penalty {  
+            background: #ea580c;  
+        }  
+  
+        .miss {  
+            background: #64748b;  
+        }  
+  
+        .penalty-miss {  
+            background: #be123c;  
+        }  
+  
+        .cancel-button {  
+            width: 100%;  
+            margin-top: 18px;  
+            background: #374151;  
+            color: white;  
         }  
   
         @media (max-width: 850px) {  
@@ -275,10 +331,6 @@
         @media (max-width: 650px) {  
             form {  
                 flex-direction: column;  
-            }  
-  
-            .actions {  
-                grid-template-columns: 1fr;  
             }  
   
             .overview-header {  
@@ -294,12 +346,16 @@
                 width: 100%;  
             }  
   
-            header h1 {  
-                font-size: 24px;  
+            .action-grid {  
+                grid-template-columns: 1fr;  
             }  
   
             .event-item {  
                 align-items: flex-start;  
+            }  
+  
+            header h1 {  
+                font-size: 24px;  
             }  
         }  
     </style>  
@@ -344,35 +400,10 @@
         <section class="card">  
             <h2>2. Aktion erfassen</h2>  
   
-            <div id="selectedPlayer" class="selected-player">  
-                Bitte zuerst einen Spieler auswählen.  
-            </div>  
-  
-            <div class="actions">  
-                <button class="action-button goal" data-action="goals">  
-                    ⚽ Tor  
-                </button>  
-  
-                <button class="action-button assist" data-action="assists">  
-                    🎯 Vorlage  
-                </button>  
-  
-                <button class="action-button save" data-action="saves">  
-                    🧤 Parade  
-                </button>  
-  
-                <button class="action-button penalty" data-action="penalties">  
-                    7-Meter   
-                </button>  
-  
-                <button class="action-button miss" data-action="misses">  
-                    Fehlwurf  
-                </button>  
-  
-                <button class="action-button penalty-miss" data-action="penaltyMisses">  
-                    7m Fehlwurf  
-                </button>  
-            </div>  
+            <p>  
+                Klicke auf einen Spielernamen. Anschließend öffnet sich  
+                automatisch das Aktionsmenü.  
+            </p>  
   
             <div id="message" class="message"></div>  
         </section>  
@@ -432,31 +463,125 @@
   
 </main>  
   
+<!-- Popup zur Aktionsauswahl -->  
+<div id="actionModal" class="modal-overlay">  
+    <div  
+        class="modal"  
+        role="dialog"  
+        aria-modal="true"  
+        aria-labelledby="modalTitle"  
+    >  
+        <h2 id="modalTitle">Aktion auswählen</h2>  
+  
+        <p id="modalPlayerName" class="modal-player-name"></p>  
+  
+        <div class="action-grid">  
+            <button  
+                class="action-button goal"  
+                data-action="goals"  
+            >  
+                ⚽ Tor  
+            </button>  
+  
+            <button  
+                class="action-button assist"  
+                data-action="assists"  
+            >  
+                🎯 Vorlage  
+            </button>  
+  
+            <button  
+                class="action-button save"  
+                data-action="saves"  
+            >  
+                🧤 Parade  
+            </button>  
+  
+            <button  
+                class="action-button penalty"  
+                data-action="penalties"  
+            >  
+                7-Meter geworfen  
+            </button>  
+  
+            <button  
+                class="action-button miss"  
+                data-action="misses"  
+            >  
+                Fehlwurf  
+            </button>  
+  
+            <button  
+                class="action-button penalty-miss"  
+                data-action="penaltyMisses"  
+            >  
+                7m Fehlwurf  
+            </button>  
+        </div>  
+  
+        <button id="cancelButton" class="cancel-button">  
+            Abbruch  
+        </button>  
+    </div>  
+</div>  
+  
 <script>  
-    const playerForm = document.getElementById("playerForm");  
-    const playerNameInput = document.getElementById("playerName");  
-    const playerList = document.getElementById("playerList");  
-    const selectedPlayerText = document.getElementById("selectedPlayer");  
-    const statsTable = document.getElementById("statsTable");  
-    const eventList = document.getElementById("eventList");  
-    const message = document.getElementById("message");  
-    const resetButton = document.getElementById("resetButton");  
-    const pdfButton = document.getElementById("pdfButton");  
-    const excelButton = document.getElementById("excelButton");  
+    const playerForm =  
+        document.getElementById("playerForm");  
   
-    let players = JSON.parse(  
-        localStorage.getItem("players")  
-    ) || [];  
+    const playerNameInput =  
+        document.getElementById("playerName");  
   
-    let events = JSON.parse(  
-        localStorage.getItem("events")  
-    ) || [];  
+    const playerList =  
+        document.getElementById("playerList");  
+  
+    const statsTable =  
+        document.getElementById("statsTable");  
+  
+    const eventList =  
+        document.getElementById("eventList");  
+  
+    const message =  
+        document.getElementById("message");  
+  
+    const resetButton =  
+        document.getElementById("resetButton");  
+  
+    const pdfButton =  
+        document.getElementById("pdfButton");  
+  
+    const excelButton =  
+        document.getElementById("excelButton");  
+  
+    const actionModal =  
+        document.getElementById("actionModal");  
+  
+    const modalPlayerName =  
+        document.getElementById("modalPlayerName");  
+  
+    const cancelButton =  
+        document.getElementById("cancelButton");  
+  
+    let players =  
+        JSON.parse(localStorage.getItem("players")) || [];  
+  
+    let events =  
+        JSON.parse(localStorage.getItem("events")) || [];  
   
     let selectedPlayerId = null;  
   
+    const actionNames = {  
+        goals: "Tor",  
+        assists: "Vorlage",  
+        saves: "Parade",  
+        penalties: "7-Meter geworfen",  
+        misses: "Fehlwurf",  
+        penaltyMisses: "7m Fehlwurf"  
+    };  
+  
     /*  
-     * Ältere Ereignisse erhalten automatisch eine ID,  
-     * damit sie ebenfalls gelöscht werden können.  
+     * Ältere Ereignisse aus vorherigen Versionen  
+     * erhalten automatisch eine ID.  
      */  
     events = events.map((event, index) => {  
         return {  
@@ -467,19 +592,14 @@
   
     saveData();  
   
-    const actionNames = {  
-        goals: "Tor",  
-        assists: "Vorlage",  
-        saves: "Parade",  
-        penalties: "7-Meter",  
-        misses: "Fehlwurf",  
-        penaltyMisses: "7m Fehlwurf"  
-    };  
-  
     function createUniqueId(index = "") {  
-        return Date.now() + "-" +  
-            index + "-" +  
-            Math.random().toString(36).substring(2, 10);  
+        return Date.now() +  
+            "-" +  
+            index +  
+            "-" +  
+            Math.random()  
+                .toString(36)  
+                .substring(2, 10);  
     }  
   
     function saveData() {  
@@ -496,6 +616,7 @@
   
     function showMessage(text, isError = true) {  
         message.textContent = text;  
+  
         message.style.color = isError  
             ? "#dc2626"  
             : "#16a34a";  
@@ -503,12 +624,6 @@
         setTimeout(() => {  
             message.textContent = "";  
         }, 3000);  
-    }  
-  
-    function escapeHtml(text) {  
-        const div = document.createElement("div");  
-        div.textContent = text;  
-        return div.innerHTML;  
     }  
   
     function renderPlayers() {  
@@ -521,31 +636,154 @@
         }  
   
         players.forEach(player => {  
-            const button = document.createElement("button");  
+            const row =  
+                document.createElement("div");  
   
-            button.className = "player-button";  
-            button.textContent = player.name;  
+            row.className = "player-row";  
   
-            if (player.id === selectedPlayerId) {  
-                button.classList.add("selected");  
-            }  
+            const selectButton =  
+                document.createElement("button");  
   
-            button.addEventListener("click", () => {  
-                selectedPlayerId = player.id;  
+            selectButton.className =  
+                "player-select-button";  
   
-                selectedPlayerText.textContent =  
-                    `Ausgewählter Spieler: ${player.name}`;  
+            selectButton.textContent =  
+                player.name;  
   
-                renderPlayers();  
-  
-                showMessage(  
-                    `Spieler „${player.name}“ ausgewählt.`,  
-                    false  
-                );  
+            selectButton.addEventListener("click", () => {  
+                openActionModal(player);  
             });  
   
-            playerList.appendChild(button);  
+            const deleteButton =  
+                document.createElement("button");  
+  
+            deleteButton.className =  
+                "delete-player-button";  
+  
+            deleteButton.textContent =  
+                "Löschen";  
+  
+            deleteButton.addEventListener("click", event => {  
+                event.stopPropagation();  
+                deletePlayer(player.id);  
+            });  
+  
+            row.appendChild(selectButton);  
+            row.appendChild(deleteButton);  
+  
+            playerList.appendChild(row);  
         });  
+    }  
+  
+    function openActionModal(player) {  
+        selectedPlayerId = player.id;  
+  
+        modalPlayerName.textContent =  
+            `Spieler: ${player.name}`;  
+  
+        actionModal.classList.add("visible");  
+  
+        /*  
+         * Der Fokus liegt direkt auf dem Abbruch-Button,  
+         * damit das Popup auch mit der Tastatur bedienbar ist.  
+         */  
+        cancelButton.focus();  
+    }  
+  
+    function closeActionModal() {  
+        actionModal.classList.remove("visible");  
+        selectedPlayerId = null;  
+    }  
+  
+    cancelButton.addEventListener("click", () => {  
+        closeActionModal();  
+  
+        showMessage(  
+            "Die Eingabe wurde abgebrochen.",  
+            false  
+        );  
+    });  
+  
+    /*  
+     * Klick auf den dunklen Bereich außerhalb des Fensters  
+     * entspricht ebenfalls einem Abbruch.  
+     */  
+    actionModal.addEventListener("click", event => {  
+        if (event.target === actionModal) {  
+            closeActionModal();  
+  
+            showMessage(  
+                "Die Eingabe wurde abgebrochen.",  
+                false  
+            );  
+        }  
+    });  
+  
+    /*  
+     * Escape-Taste schließt das Aktionsfenster.  
+     */  
+    document.addEventListener("keydown", event => {  
+        if (  
+            event.key === "Escape" &&  
+            actionModal.classList.contains("visible")  
+        ) {  
+            closeActionModal();  
+  
+            showMessage(  
+                "Die Eingabe wurde abgebrochen.",  
+                false  
+            );  
+        }  
+    });  
+  
+    function deletePlayer(playerId) {  
+        const player = players.find(  
+            player => player.id === playerId  
+        );  
+  
+        if (!player) {  
+            return;  
+        }  
+  
+        const playerEvents = events.filter(  
+            event => event.playerId === playerId  
+        );  
+  
+        let question =  
+            `Möchtest du den Spieler „${player.name}“ ` +  
+            `wirklich löschen?`;  
+  
+        if (playerEvents.length > 0) {  
+            question +=  
+                `\n\nDabei werden auch ${playerEvents.length} ` +  
+                `zugehörige Aktion(en) gelöscht.`;  
+        }  
+  
+        if (!confirm(question)) {  
+            return;  
+        }  
+  
+        players = players.filter(  
+            player => player.id !== playerId  
+        );  
+  
+        events = events.filter(  
+            event => event.playerId !== playerId  
+        );  
+  
+        if (selectedPlayerId === playerId) {  
+            closeActionModal();  
+        }  
+  
+        saveData();  
+        renderPlayers();  
+        renderStats();  
+        renderEvents();  
+  
+        showMessage(  
+            `Spieler „${player.name}“ wurde gelöscht.`,  
+            false  
+        );  
     }  
   
     function getPlayerStats(playerId) {  
@@ -612,19 +850,40 @@
         }  
   
         players.forEach(player => {  
-            const stats = getPlayerStats(player.id);  
-            const row = document.createElement("tr");  
+            const stats =  
+                getPlayerStats(player.id);  
   
-            row.innerHTML = `  
-                <td>${escapeHtml(player.name)}</td>  
-                <td>${stats.goals}</td>  
-                <td>${stats.assists}</td>  
-                <td>${stats.saves}</td>  
-                <td>${stats.penalties}</td>  
-                <td>${stats.misses}</td>  
-                <td>${stats.penaltyMisses}</td>  
-                <td><strong>${stats.total}</strong></td>  
-            `;  
+            const row =  
+                document.createElement("tr");  
+  
+            const cells = [  
+                player.name,  
+                stats.goals,  
+                stats.assists,  
+                stats.saves,  
+                stats.penalties,  
+                stats.misses,  
+                stats.penaltyMisses,  
+                stats.total  
+            ];  
+  
+            cells.forEach((value, index) => {  
+                const cell =  
+                    document.createElement("td");  
+  
+                cell.textContent = value;  
+  
+                if (index === 7) {  
+                    const strong =  
+                        document.createElement("strong");  
+  
+                    strong.textContent = value;  
+                    cell.textContent = "";  
+                    cell.appendChild(strong);  
+                }  
+  
+                row.appendChild(cell);  
+            });  
   
             statsTable.appendChild(row);  
         });  
@@ -648,20 +907,30 @@
                 return;  
             }  
   
-            const listItem = document.createElement("li");  
-            listItem.className = "event-item";  
+            const listItem =  
+                document.createElement("li");  
   
-            const eventText = document.createElement("span");  
-            eventText.className = "event-text";  
+            listItem.className =  
+                "event-item";  
+  
+            const eventText =  
+                document.createElement("span");  
+  
+            eventText.className =  
+                "event-text";  
   
             eventText.textContent =  
                 `${event.time} – ${player.name}: ` +  
                 `${actionNames[event.action]}`;  
   
-            const deleteButton = document.createElement("button");  
-            deleteButton.className = "delete-event-button";  
-            deleteButton.textContent = "Löschen";  
-            deleteButton.title = "Diese Eingabe löschen";  
+            const deleteButton =  
+                document.createElement("button");  
+  
+            deleteButton.className =  
+                "delete-event-button";  
+  
+            deleteButton.textContent =  
+                "Löschen";  
   
             deleteButton.addEventListener("click", () => {  
                 deleteEvent(event.id);  
@@ -681,8 +950,9 @@
   
         if (eventIndex === -1) {  
             showMessage(  
-                "Die Eingabe konnte nicht gefunden werden."  
+                "Die Aktion konnte nicht gefunden werden."  
             );  
+  
             return;  
         }  
   
@@ -699,12 +969,11 @@
         const actionName =  
             actionNames[event.action] || event.action;  
   
-        const confirmed = confirm(  
-            "Möchtest du diese Eingabe wirklich löschen?\n\n" +  
-            `${event.time} – ${playerName}: ${actionName}`  
-        );  
+        const question =  
+            `Möchtest du diese Aktion wirklich löschen?\n\n` +  
+            `${event.time} – ${playerName}: ${actionName}`;  
   
-        if (!confirmed) {  
+        if (!confirm(question)) {  
             return;  
         }  
   
@@ -715,45 +984,47 @@
         renderEvents();  
   
         showMessage(  
-            "Die Eingabe wurde gelöscht.",  
+            "Die Aktion wurde gelöscht.",  
             false  
         );  
     }  
   
-    playerForm.addEventListener("submit", function(event) {  
+    playerForm.addEventListener("submit", event => {  
         event.preventDefault();  
   
-        const name = playerNameInput.value.trim();  
+        const name =  
+            playerNameInput.value.trim();  
   
         if (name === "") {  
             showMessage(  
                 "Bitte einen Spielernamen eingeben."  
             );  
+  
             return;  
         }  
   
         const alreadyExists = players.some(  
             player =>  
-                player.name.toLowerCase() === name.toLowerCase()  
+                player.name.toLowerCase() ===  
+                name.toLowerCase()  
         );  
   
         if (alreadyExists) {  
             showMessage(  
                 "Dieser Spieler ist bereits vorhanden."  
             );  
+  
             return;  
         }  
   
-        const newPlayer = {  
-            id: Date.now(),  
+        players.push({  
+            id: createUniqueId(),  
             name: name  
-        };  
-  
-        players.push(newPlayer);  
-        saveData();  
+        });  
   
         playerNameInput.value = "";  
   
+        saveData();  
         renderPlayers();  
         renderStats();  
   
@@ -763,54 +1034,64 @@
         );  
     });  
   
-    document.querySelectorAll(".action-button").forEach(button => {  
-        button.addEventListener("click", function() {  
-            if (selectedPlayerId === null) {  
-                showMessage(  
-                    "Bitte zuerst einen Spieler auswählen."  
+    /*  
+     * Erst das Anklicken einer Aktion erzeugt  
+     * einen neuen Ereigniseintrag.  
+     */  
+    document  
+        .querySelectorAll(".action-button")  
+        .forEach(button => {  
+            button.addEventListener("click", () => {  
+                if (selectedPlayerId === null) {  
+                    return;  
+                }  
+  
+                const action =  
+                    button.dataset.action;  
+  
+                const player = players.find(  
+                    player => player.id === selectedPlayerId  
                 );  
-                return;  
-            }  
   
-            const action = this.dataset.action;  
-            const now = new Date();  
+                if (!player) {  
+                    closeActionModal();  
+                    return;  
+                }  
   
-            const time = now.toLocaleTimeString("de-DE", {  
-                hour: "2-digit",  
-                minute: "2-digit",  
-                second: "2-digit"  
+                const now = new Date();  
+  
+                const time =  
+                    now.toLocaleTimeString("de-DE", {  
+                        hour: "2-digit",  
+                        minute: "2-digit",  
+                        second: "2-digit"  
+                    });  
+  
+                events.push({  
+                    id: createUniqueId(),  
+                    playerId: selectedPlayerId,  
+                    action: action,  
+                    time: time  
+                });  
+  
+                saveData();  
+                renderStats();  
+                renderEvents();  
+                closeActionModal();  
+  
+                showMessage(  
+                    `${actionNames[action]} für ` +  
+                    `${player.name} gespeichert.`,  
+                    false  
+                );  
             });  
-  
-            events.push({  
-                id: createUniqueId(),  
-                playerId: selectedPlayerId,  
-                action: action,  
-                time: time  
-            });  
-  
-            saveData();  
-            renderStats();  
-            renderEvents();  
-  
-            const player = players.find(  
-                player => player.id === selectedPlayerId  
-            );  
-  
-            showMessage(  
-                `${actionNames[action]} für ` +  
-                `${player.name} gespeichert.`,  
-                false  
-            );  
         });  
-    });  
   
-    resetButton.addEventListener("click", function() {  
-        const confirmed = confirm(  
+    resetButton.addEventListener("click", () => {  
+        if (!confirm(  
             "Möchtest du wirklich alle Spieler und " +  
             "Spieldaten löschen?"  
-        );  
-  
-        if (!confirmed) {  
+        )) {  
             return;  
         }  
   
@@ -821,9 +1102,7 @@
         localStorage.removeItem("players");  
         localStorage.removeItem("events");  
   
-        selectedPlayerText.textContent =  
-            "Bitte zuerst einen Spieler auswählen.";  
-  
+        closeActionModal();  
         renderPlayers();  
         renderStats();  
         renderEvents();  
@@ -834,11 +1113,7 @@
         );  
     });  
   
-    function convertToPdfText(text) {  
-        /*  
-         * Die Standard-PDF-Schrift von jsPDF unterstützt  
-         * nicht alle deutschen Sonderzeichen zuverlässig.  
-         */  
+    function pdfText(text) {  
         return String(text)  
             .replace(/ä/g, "ae")  
             .replace(/ö/g, "oe")  
@@ -854,6 +1129,7 @@
             showMessage(  
                 "Es sind noch keine Spieler vorhanden."  
             );  
+  
             return;  
         }  
   
@@ -864,6 +1140,7 @@
             showMessage(  
                 "Die PDF-Bibliothek konnte nicht geladen werden."  
             );  
+  
             return;  
         }  
   
@@ -872,18 +1149,20 @@
   
         const now = new Date();  
   
-        const date = now.toLocaleDateString("de-DE");  
+        const date =  
+            now.toLocaleDateString("de-DE");  
   
-        const time = now.toLocaleTimeString("de-DE", {  
-            hour: "2-digit",  
-            minute: "2-digit"  
-        });  
+        const time =  
+            now.toLocaleTimeString("de-DE", {  
+                hour: "2-digit",  
+                minute: "2-digit"  
+            });  
   
         doc.setFontSize(20);  
         doc.setTextColor(29, 78, 216);  
   
         doc.text(  
-            convertToPdfText("TSV Germania Krölpa"),  
+            pdfText("POWERPLAY"),  
             14,  
             20  
         );  
@@ -892,7 +1171,7 @@
         doc.setTextColor(60, 60, 60);  
   
         doc.text(  
-            convertToPdfText("Handball-Spielüberblick"),  
+            pdfText("Handball-Spielüberblick"),  
             14,  
             29  
         );  
@@ -901,18 +1180,17 @@
         doc.setTextColor(90, 90, 90);  
   
         doc.text(  
-            convertToPdfText(  
-                `Erstellt am: ${date}, ${time} Uhr`  
-            ),  
+            pdfText(`Erstellt am: ${date}, ${time} Uhr`),  
             14,  
             37  
         );  
   
         const tableData = players.map(player => {  
-            const stats = getPlayerStats(player.id);  
+            const stats =  
+                getPlayerStats(player.id);  
   
             return [  
-                player.name,  
+                pdfText(player.name),  
                 stats.goals,  
                 stats.assists,  
                 stats.saves,  
@@ -932,8 +1210,8 @@
                 "Vorlagen",  
                 "Paraden",  
                 "7-Meter",  
-                "Fehlwuerfe",  
-                "7m Fehlwuerfe",  
+                "Fehlwürfe",  
+                "7m Fehlwürfe",  
                 "Gesamt"  
             ]],  
   
@@ -963,7 +1241,8 @@
             }  
         });  
   
-        let currentY = doc.lastAutoTable.finalY + 15;  
+        const currentY =  
+            doc.lastAutoTable.finalY + 15;  
   
         doc.setFontSize(15);  
         doc.setTextColor(29, 78, 216);  
@@ -977,7 +1256,8 @@
         const eventData = events  
             .map(event => {  
                 const player = players.find(  
-                    player => player.id === event.playerId  
+                    player =>  
+                        player.id === event.playerId  
                 );  
   
                 if (!player) {  
@@ -986,8 +1266,8 @@
   
                 return [  
                     event.time,  
-                    player.name,  
-                    actionNames[event.action]  
+                    pdfText(player.name),  
+                    pdfText(actionNames[event.action])  
                 ];  
             })  
             .filter(event => event !== null);  
@@ -1002,11 +1282,7 @@
                     "Aktion"  
                 ]],  
   
-                body: eventData.map(row =>  
-                    row.map(cell =>  
-                        convertToPdfText(cell)  
-                    )  
-                ),  
+                body: eventData,  
   
                 theme: "striped",  
   
@@ -1031,10 +1307,11 @@
             );  
         }  
   
-        const fileDate = date.replace(/\./g, "-");  
+        const fileDate =  
+            date.replace(/\./g, "-");  
   
         doc.save(  
-            `Handball-Spielueberblick-${fileDate}.pdf`  
+            `POWERPLAY-Spielueberblick-${fileDate}.pdf`  
         );  
   
         showMessage(  
@@ -1048,6 +1325,7 @@
             showMessage(  
                 "Es sind noch keine Spieler vorhanden."  
             );  
+  
             return;  
         }  
   
@@ -1055,21 +1333,23 @@
             showMessage(  
                 "Die Excel-Bibliothek konnte nicht geladen werden."  
             );  
+  
             return;  
         }  
   
-        const now = new Date();  
-        const date = now.toLocaleDateString("de-DE");  
+        const date =  
+            new Date().toLocaleDateString("de-DE");  
   
         const statsData = players.map(player => {  
-            const stats = getPlayerStats(player.id);  
+            const stats =  
+                getPlayerStats(player.id);  
   
             return {  
                 "Spieler": player.name,  
                 "Tore": stats.goals,  
                 "Vorlagen": stats.assists,  
                 "Paraden": stats.saves,  
-                "7-Meter": stats.penalties,  
+                "7-Meter geworfen": stats.penalties,  
                 "Fehlwürfe": stats.misses,  
                 "7m Fehlwürfe": stats.penaltyMisses,  
                 "Gesamtaktionen": stats.total  
@@ -1079,7 +1359,8 @@
         const eventData = events  
             .map(event => {  
                 const player = players.find(  
-                    player => player.id === event.playerId  
+                    player =>  
+                        player.id === event.playerId  
                 );  
   
                 if (!player) {  
@@ -1094,7 +1375,8 @@
             })  
             .filter(event => event !== null);  
   
-        const workbook = XLSX.utils.book_new();  
+        const workbook =  
+            XLSX.utils.book_new();  
   
         const statsWorksheet =  
             XLSX.utils.json_to_sheet(statsData);  
@@ -1106,7 +1388,8 @@
                     : [{  
                         "Uhrzeit": "",  
                         "Spieler": "",  
-                        "Aktion": "Keine Aktionen erfasst"  
+                        "Aktion":  
+                            "Keine Aktionen erfasst"  
                     }]  
             );  
   
@@ -1139,11 +1422,12 @@
             "Ereignisverlauf"  
         );  
   
-        const fileDate = date.replace(/\./g, "-");  
+        const fileDate =  
+            date.replace(/\./g, "-");  
   
         XLSX.writeFile(  
             workbook,  
-            `Handball-Spielueberblick-${fileDate}.xlsx`  
+            `POWERPLAY-Spielueberblick-${fileDate}.xlsx`  
         );  
   
         showMessage(  
