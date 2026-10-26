@@ -1,3 +1,4 @@
+html  
 <!DOCTYPE html>  
 <html lang="de">  
 <head>  
@@ -151,14 +152,16 @@
             font-weight: bold;  
         }  
   
-        .overview-header {  
+        .overview-header,  
+        .event-header {  
             display: flex;  
             justify-content: space-between;  
             align-items: center;  
             gap: 15px;  
         }  
   
-        .overview-header h2 {  
+        .overview-header h2,  
+        .event-header h2 {  
             margin-bottom: 0;  
         }  
   
@@ -176,6 +179,12 @@
   
         .excel-button {  
             background: #15803d;  
+            color: white;  
+            font-weight: bold;  
+        }  
+  
+        .clear-events-button {  
+            background: #dc2626;  
             color: white;  
             font-weight: bold;  
         }  
@@ -229,9 +238,6 @@
             flex: 1;  
         }  
   
-        /*  
-         * Popup-Fenster  
-         */  
         .modal-overlay {  
             display: none;  
             position: fixed;  
@@ -333,7 +339,8 @@
                 flex-direction: column;  
             }  
   
-            .overview-header {  
+            .overview-header,  
+            .event-header {  
                 flex-direction: column;  
                 align-items: stretch;  
             }  
@@ -342,7 +349,8 @@
                 flex-direction: column;  
             }  
   
-            .export-buttons button {  
+            .export-buttons button,  
+            .clear-events-button {  
                 width: 100%;  
             }  
   
@@ -452,7 +460,13 @@
     </section>  
   
     <section class="card">  
-        <h2>Ereignisverlauf</h2>  
+        <div class="event-header">  
+            <h2>Ereignisverlauf</h2>  
+  
+            <button id="clearEventsButton" class="clear-events-button">  
+                Ereignisverlauf löschen  
+            </button>  
+        </div>  
   
         <ul id="eventList" class="event-list">  
             <li class="empty">  
@@ -476,45 +490,27 @@
         <p id="modalPlayerName" class="modal-player-name"></p>  
   
         <div class="action-grid">  
-            <button  
-                class="action-button goal"  
-                data-action="goals"  
-            >  
+            <button class="action-button goal" data-action="goals">  
                 ⚽ Tor  
             </button>  
   
-            <button  
-                class="action-button assist"  
-                data-action="assists"  
-            >  
+            <button class="action-button assist" data-action="assists">  
                 🎯 Assist  
             </button>  
   
-            <button  
-                class="action-button save"  
-                data-action="saves"  
-            >  
+            <button class="action-button save" data-action="saves">  
                 🧤 Parade  
             </button>  
   
-            <button  
-                class="action-button penalty"  
-                data-action="penalties"  
-            >  
+            <button class="action-button penalty" data-action="penalties">  
                 7-Meter  
             </button>  
   
-            <button  
-                class="action-button miss"  
-                data-action="misses"  
-            >  
+            <button class="action-button miss" data-action="misses">  
                 Fehlwurf  
             </button>  
   
-            <button  
-                class="action-button penalty-miss"  
-                data-action="penaltyMisses"  
-            >  
+            <button class="action-button penalty-miss" data-action="penaltyMisses">  
                 7m Fehlwurf  
             </button>  
         </div>  
@@ -526,48 +522,22 @@
 </div>  
   
 <script>  
-    const playerForm =  
-        document.getElementById("playerForm");  
+    const playerForm = document.getElementById("playerForm");  
+    const playerNameInput = document.getElementById("playerName");  
+    const playerList = document.getElementById("playerList");  
+    const statsTable = document.getElementById("statsTable");  
+    const eventList = document.getElementById("eventList");  
+    const message = document.getElementById("message");  
+    const resetButton = document.getElementById("resetButton");  
+    const pdfButton = document.getElementById("pdfButton");  
+    const excelButton = document.getElementById("excelButton");  
+    const clearEventsButton = document.getElementById("clearEventsButton");  
+    const actionModal = document.getElementById("actionModal");  
+    const modalPlayerName = document.getElementById("modalPlayerName");  
+    const cancelButton = document.getElementById("cancelButton");  
   
-    const playerNameInput =  
-        document.getElementById("playerName");  
-  
-    const playerList =  
-        document.getElementById("playerList");  
-  
-    const statsTable =  
-        document.getElementById("statsTable");  
-  
-    const eventList =  
-        document.getElementById("eventList");  
-  
-    const message =  
-        document.getElementById("message");  
-  
-    const resetButton =  
-        document.getElementById("resetButton");  
-  
-    const pdfButton =  
-        document.getElementById("pdfButton");  
-  
-    const excelButton =  
-        document.getElementById("excelButton");  
-  
-    const actionModal =  
-        document.getElementById("actionModal");  
-  
-    const modalPlayerName =  
-        document.getElementById("modalPlayerName");  
-  
-    const cancelButton =  
-        document.getElementById("cancelButton");  
-  
-    let players =  
-        JSON.parse(localStorage.getItem("players")) || [];  
-  
-    let events =  
-        JSON.parse(localStorage.getItem("events")) || [];  
-  
+    let players = JSON.parse(localStorage.getItem("players")) || [];  
+    let events = JSON.parse(localStorage.getItem("events")) || [];  
     let selectedPlayerId = null;  
   
     const actionNames = {  
@@ -579,39 +549,30 @@
         penaltyMisses: "7m Fehlwurf"  
     };  
   
-    /*  
-     * Ältere Ereignisse aus vorherigen Versionen  
-     * erhalten automatisch eine ID.  
-     */  
+    function createUniqueId(index = "") {  
+        return Date.now() + "-" + index + "-" +  
+            Math.random().toString(36).substring(2, 10);  
+    }  
+  
+    players = players.map((player, index) => {  
+        return {  
+            ...player,  
+            id: player.id || createUniqueId("player-" + index)  
+        };  
+    });  
+  
     events = events.map((event, index) => {  
         return {  
             ...event,  
-            id: event.id || createUniqueId(index)  
+            id: event.id || createUniqueId("event-" + index)  
         };  
     });  
   
     saveData();  
   
-    function createUniqueId(index = "") {  
-        return Date.now() +  
-            "-" +  
-            index +  
-            "-" +  
-            Math.random()  
-                .toString(36)  
-                .substring(2, 10);  
-    }  
-  
     function saveData() {  
-        localStorage.setItem(  
-            "players",  
-            JSON.stringify(players)  
-        );  
-  
-        localStorage.setItem(  
-            "events",  
-            JSON.stringify(events)  
-        );  
+        localStorage.setItem("players", JSON.stringify(players));  
+        localStorage.setItem("events", JSON.stringify(events));  
     }  
   
     function showMessage(text, isError = true) {  
@@ -636,32 +597,20 @@
         }  
   
         players.forEach(player => {  
-            const row =  
-                document.createElement("div");  
-  
+            const row = document.createElement("div");  
             row.className = "player-row";  
   
-            const selectButton =  
-                document.createElement("button");  
-  
-            selectButton.className =  
-                "player-select-button";  
-  
-            selectButton.textContent =  
-                player.name;  
+            const selectButton = document.createElement("button");  
+            selectButton.className = "player-select-button";  
+            selectButton.textContent = player.name;  
   
             selectButton.addEventListener("click", () => {  
                 openActionModal(player);  
             });  
   
-            const deleteButton =  
-                document.createElement("button");  
-  
-            deleteButton.className =  
-                "delete-player-button";  
-  
-            deleteButton.textContent =  
-                "Löschen";  
+            const deleteButton = document.createElement("button");  
+            deleteButton.className = "delete-player-button";  
+            deleteButton.textContent = "Löschen";  
   
             deleteButton.addEventListener("click", event => {  
                 event.stopPropagation();  
@@ -670,23 +619,14 @@
   
             row.appendChild(selectButton);  
             row.appendChild(deleteButton);  
-  
             playerList.appendChild(row);  
         });  
     }  
   
     function openActionModal(player) {  
         selectedPlayerId = player.id;  
-  
-        modalPlayerName.textContent =  
-            `Spieler: ${player.name}`;  
-  
+        modalPlayerName.textContent = `Spieler: ${player.name}`;  
         actionModal.classList.add("visible");  
-  
-        /*  
-         * Der Fokus liegt direkt auf dem Abbruch-Button,  
-         * damit das Popup auch mit der Tastatur bedienbar ist.  
-         */  
         cancelButton.focus();  
     }  
   
@@ -695,51 +635,8 @@
         selectedPlayerId = null;  
     }  
   
-    cancelButton.addEventListener("click", () => {  
-        closeActionModal();  
-  
-        showMessage(  
-            "Die Eingabe wurde abgebrochen.",  
-            false  
-        );  
-    });  
-  
-    /*  
-     * Klick auf den dunklen Bereich außerhalb des Fensters  
-     * entspricht ebenfalls einem Abbruch.  
-     */  
-    actionModal.addEventListener("click", event => {  
-        if (event.target === actionModal) {  
-            closeActionModal();  
-  
-            showMessage(  
-                "Die Eingabe wurde abgebrochen.",  
-                false  
-            );  
-        }  
-    });  
-  
-    /*  
-     * Escape-Taste schließt das Aktionsfenster.  
-     */  
-    document.addEventListener("keydown", event => {  
-        if (  
-            event.key === "Escape" &&  
-            actionModal.classList.contains("visible")  
-        ) {  
-            closeActionModal();  
-  
-            showMessage(  
-                "Die Eingabe wurde abgebrochen.",  
-                false  
-            );  
-        }  
-    });  
-  
     function deletePlayer(playerId) {  
-        const player = players.find(  
-            player => player.id === playerId  
-        );  
+        const player = players.find(player => player.id === playerId);  
   
         if (!player) {  
             return;  
@@ -750,8 +647,7 @@
         );  
   
         let question =  
-            `Möchtest du den Spieler „${player.name}“ ` +  
-            `wirklich löschen?`;  
+            `Möchtest du den Spieler „${player.name}“ wirklich löschen?`;  
   
         if (playerEvents.length > 0) {  
             question +=  
@@ -763,13 +659,8 @@
             return;  
         }  
   
-        players = players.filter(  
-            player => player.id !== playerId  
-        );  
-  
-        events = events.filter(  
-            event => event.playerId !== playerId  
-        );  
+        players = players.filter(player => player.id !== playerId);  
+        events = events.filter(event => event.playerId !== playerId);  
   
         if (selectedPlayerId === playerId) {  
             closeActionModal();  
@@ -780,10 +671,7 @@
         renderStats();  
         renderEvents();  
   
-        showMessage(  
-            `Spieler „${player.name}“ wurde gelöscht.`,  
-            false  
-        );  
+        showMessage(`Spieler „${player.name}“ wurde gelöscht.`, false);  
     }  
   
     function getPlayerStats(playerId) {  
@@ -815,14 +703,6 @@
             event => event.action === "penaltyMisses"  
         ).length;  
   
-        const total =  
-            goals +  
-            assists +  
-            saves +  
-            penalties +  
-            misses +  
-            penaltyMisses;  
-  
         return {  
             goals,  
             assists,  
@@ -830,7 +710,13 @@
             penalties,  
             misses,  
             penaltyMisses,  
-            total  
+            total:  
+                goals +  
+                assists +  
+                saves +  
+                penalties +  
+                misses +  
+                penaltyMisses  
         };  
     }  
   
@@ -845,16 +731,12 @@
                     </td>  
                 </tr>  
             `;  
-  
             return;  
         }  
   
         players.forEach(player => {  
-            const stats =  
-                getPlayerStats(player.id);  
-  
-            const row =  
-                document.createElement("tr");  
+            const stats = getPlayerStats(player.id);  
+            const row = document.createElement("tr");  
   
             const cells = [  
                 player.name,  
@@ -868,18 +750,14 @@
             ];  
   
             cells.forEach((value, index) => {  
-                const cell =  
-                    document.createElement("td");  
-  
-                cell.textContent = value;  
+                const cell = document.createElement("td");  
   
                 if (index === 7) {  
-                    const strong =  
-                        document.createElement("strong");  
-  
+                    const strong = document.createElement("strong");  
                     strong.textContent = value;  
-                    cell.textContent = "";  
                     cell.appendChild(strong);  
+                } else {  
+                    cell.textContent = value;  
                 }  
   
                 row.appendChild(cell);  
@@ -898,39 +776,35 @@
             return;  
         }  
   
-        [...events].reverse().forEach(event => {  
+        const visibleEvents = [...events]  
+            .reverse()  
+            .filter(event =>  
+                players.some(player => player.id === event.playerId)  
+            );  
+  
+        if (visibleEvents.length === 0) {  
+            eventList.innerHTML =  
+                '<li class="empty">Noch keine Aktionen erfasst.</li>';  
+            return;  
+        }  
+  
+        visibleEvents.forEach(event => {  
             const player = players.find(  
                 player => player.id === event.playerId  
             );  
   
-            if (!player) {  
-                return;  
-            }  
+            const listItem = document.createElement("li");  
+            listItem.className = "event-item";  
   
-            const listItem =  
-                document.createElement("li");  
-  
-            listItem.className =  
-                "event-item";  
-  
-            const eventText =  
-                document.createElement("span");  
-  
-            eventText.className =  
-                "event-text";  
-  
+            const eventText = document.createElement("span");  
+            eventText.className = "event-text";  
             eventText.textContent =  
                 `${event.time} – ${player.name}: ` +  
-                `${actionNames[event.action]}`;  
+                `${actionNames[event.action] || event.action}`;  
   
-            const deleteButton =  
-                document.createElement("button");  
-  
-            deleteButton.className =  
-                "delete-event-button";  
-  
-            deleteButton.textContent =  
-                "Löschen";  
+            const deleteButton = document.createElement("button");  
+            deleteButton.className = "delete-event-button";  
+            deleteButton.textContent = "Löschen";  
   
             deleteButton.addEventListener("click", () => {  
                 deleteEvent(event.id);  
@@ -949,31 +823,11 @@
         );  
   
         if (eventIndex === -1) {  
-            showMessage(  
-                "Die Aktion konnte nicht gefunden werden."  
-            );  
-  
+            showMessage("Die Aktion konnte nicht gefunden werden.");  
             return;  
         }  
   
-        const event = events[eventIndex];  
-  
-        const player = players.find(  
-            player => player.id === event.playerId  
-        );  
-  
-        const playerName = player  
-            ? player.name  
-            : "Unbekannter Spieler";  
-  
-        const actionName =  
-            actionNames[event.action] || event.action;  
-  
-        const question =  
-            `Möchtest du diese Aktion wirklich löschen?\n\n` +  
-            `${event.time} – ${playerName}: ${actionName}`;  
-  
-        if (!confirm(question)) {  
+        if (!confirm("Möchtest du diese Aktion wirklich löschen?")) {  
             return;  
         }  
   
@@ -983,37 +837,25 @@
         renderStats();  
         renderEvents();  
   
-        showMessage(  
-            "Die Aktion wurde gelöscht.",  
-            false  
-        );  
+        showMessage("Die Aktion wurde gelöscht.", false);  
     }  
   
     playerForm.addEventListener("submit", event => {  
         event.preventDefault();  
   
-        const name =  
-            playerNameInput.value.trim();  
+        const name = playerNameInput.value.trim();  
   
-        if (name === "") {  
-            showMessage(  
-                "Bitte einen Spielernamen eingeben."  
-            );  
-  
+        if (name.length === 0) {  
+            showMessage("Bitte gib einen Spielernamen ein.");  
             return;  
         }  
   
-        const alreadyExists = players.some(  
-            player =>  
-                player.name.toLowerCase() ===  
-                name.toLowerCase()  
+        const playerExists = players.some(player =>  
+            player.name.toLowerCase() === name.toLowerCase()  
         );  
   
-        if (alreadyExists) {  
-            showMessage(  
-                "Dieser Spieler ist bereits vorhanden."  
-            );  
-  
+        if (playerExists) {  
+            showMessage("Dieser Spieler ist bereits vorhanden.");  
             return;  
         }  
   
@@ -1022,76 +864,121 @@
             name: name  
         });  
   
-        playerNameInput.value = "";  
-  
         saveData();  
         renderPlayers();  
         renderStats();  
   
+        playerNameInput.value = "";  
+        playerNameInput.focus();  
+  
+        showMessage(`Spieler „${name}“ wurde hinzugefügt.`, false);  
+    });  
+  
+    document.querySelectorAll(".action-button").forEach(button => {  
+        button.addEventListener("click", () => {  
+            if (!selectedPlayerId) {  
+                showMessage("Bitte wähle zuerst einen Spieler aus.");  
+                return;  
+            }  
+  
+            const player = players.find(  
+                player => player.id === selectedPlayerId  
+            );  
+  
+            if (!player) {  
+                showMessage("Der ausgewählte Spieler wurde nicht gefunden.");  
+                closeActionModal();  
+                return;  
+            }  
+  
+            const action = button.dataset.action;  
+  
+            events.push({  
+                id: createUniqueId(),  
+                playerId: selectedPlayerId,  
+                action: action,  
+                time: new Date().toLocaleTimeString("de-DE", {  
+                    hour: "2-digit",  
+                    minute: "2-digit",  
+                    second: "2-digit"  
+                })  
+            });  
+  
+            saveData();  
+            renderStats();  
+            renderEvents();  
+            closeActionModal();  
+  
+            showMessage(  
+                `${actionNames[action]} für „${player.name}“ erfasst.`,  
+                false  
+            );  
+        });  
+    });  
+  
+    cancelButton.addEventListener("click", () => {  
+        closeActionModal();  
+        showMessage("Die Eingabe wurde abgebrochen.", false);  
+    });  
+  
+    actionModal.addEventListener("click", event => {  
+        if (event.target === actionModal) {  
+            closeActionModal();  
+            showMessage("Die Eingabe wurde abgebrochen.", false);  
+        }  
+    });  
+  
+    document.addEventListener("keydown", event => {  
+        if (  
+            event.key === "Escape" &&  
+            actionModal.classList.contains("visible")  
+        ) {  
+            closeActionModal();  
+            showMessage("Die Eingabe wurde abgebrochen.", false);  
+        }  
+    });  
+  
+    clearEventsButton.addEventListener("click", () => {  
+        if (events.length === 0) {  
+            showMessage("Der Ereignisverlauf ist bereits leer.");  
+            return;  
+        }  
+  
+        const confirmed = confirm(  
+            "Möchtest du wirklich den gesamten Ereignisverlauf löschen?\n\n" +  
+            "Alle erfassten Aktionen werden entfernt. Die Spieler bleiben erhalten."  
+        );  
+  
+        if (!confirmed) {  
+            return;  
+        }  
+  
+        events = [];  
+  
+        saveData();  
+        renderStats();  
+        renderEvents();  
+  
         showMessage(  
-            `Spieler „${name}“ wurde hinzugefügt.`,  
+            "Der gesamte Ereignisverlauf wurde gelöscht.",  
             false  
         );  
     });  
   
-    /*  
-     * Erst das Anklicken einer Aktion erzeugt  
-     * einen neuen Ereigniseintrag.  
-     */  
-    document  
-        .querySelectorAll(".action-button")  
-        .forEach(button => {  
-            button.addEventListener("click", () => {  
-                if (selectedPlayerId === null) {  
-                    return;  
-                }  
-  
-                const action =  
-                    button.dataset.action;  
-  
-                const player = players.find(  
-                    player => player.id === selectedPlayerId  
-                );  
-  
-                if (!player) {  
-                    closeActionModal();  
-                    return;  
-                }  
-  
-                const now = new Date();  
-  
-                const time =  
-                    now.toLocaleTimeString("de-DE", {  
-                        hour: "2-digit",  
-                        minute: "2-digit",  
-                        second: "2-digit"  
-                    });  
-  
-                events.push({  
-                    id: createUniqueId(),  
-                    playerId: selectedPlayerId,  
-                    action: action,  
-                    time: time  
-                });  
-  
-                saveData();  
-                renderStats();  
-                renderEvents();  
-                closeActionModal();  
-  
-                showMessage(  
-                    `${actionNames[action]} für ` +  
-                    `${player.name} gespeichert.`,  
-                    false  
-                );  
-            });  
-        });  
-  
     resetButton.addEventListener("click", () => {  
-        if (!confirm(  
-            "Möchtest du wirklich alle Spieler und " +  
-            "Spieldaten löschen?"  
-        )) {  
+        const hasData = players.length > 0 || events.length > 0;  
+  
+        if (!hasData) {  
+            showMessage("Es gibt keine Daten zum Zurücksetzen.");  
+            return;  
+        }  
+  
+        const confirmed = confirm(  
+            "Möchtest du das gesamte Spiel wirklich zurücksetzen?\n\n" +  
+            "Alle Spieler und Aktionen werden gelöscht."  
+        );  
+  
+        if (!confirmed) {  
             return;  
         }  
   
@@ -1099,98 +986,33 @@
         events = [];  
         selectedPlayerId = null;  
   
-        localStorage.removeItem("players");  
-        localStorage.removeItem("events");  
-  
-        closeActionModal();  
+        saveData();  
         renderPlayers();  
         renderStats();  
         renderEvents();  
   
         showMessage(  
-            "Das Spiel wurde zurückgesetzt.",  
+            "Das Spiel wurde vollständig zurückgesetzt.",  
             false  
         );  
     });  
   
-    function pdfText(text) {  
-        return String(text)  
-            .replace(/ä/g, "ae")  
-            .replace(/ö/g, "oe")  
-            .replace(/ü/g, "ue")  
-            .replace(/Ä/g, "Ae")  
-            .replace(/Ö/g, "Oe")  
-            .replace(/Ü/g, "Ue")  
-            .replace(/ß/g, "ss");  
-    }  
-  
-    function createPdf() {  
+    pdfButton.addEventListener("click", () => {  
         if (players.length === 0) {  
             showMessage(  
-                "Es sind noch keine Spieler vorhanden."  
+                "Es sind keine Spielerdaten für den PDF-Export vorhanden."  
             );  
-  
-            return;  
-        }  
-  
-        if (  
-            !window.jspdf ||  
-            !window.jspdf.jsPDF  
-        ) {  
-            showMessage(  
-                "Die PDF-Bibliothek konnte nicht geladen werden."  
-            );  
-  
             return;  
         }  
   
         const { jsPDF } = window.jspdf;  
         const doc = new jsPDF();  
   
-        const now = new Date();  
-  
-        const date =  
-            now.toLocaleDateString("de-DE");  
-  
-        const time =  
-            now.toLocaleTimeString("de-DE", {  
-                hour: "2-digit",  
-                minute: "2-digit"  
-            });  
-  
-        doc.setFontSize(20);  
-        doc.setTextColor(29, 78, 216);  
-  
-        doc.text(  
-            pdfText("POWERPLAY"),  
-            14,  
-            20  
-        );  
-  
-        doc.setFontSize(15);  
-        doc.setTextColor(60, 60, 60);  
-  
-        doc.text(  
-            pdfText("Handball-Spielüberblick"),  
-            14,  
-            29  
-        );  
-  
-        doc.setFontSize(10);  
-        doc.setTextColor(90, 90, 90);  
-  
-        doc.text(  
-            pdfText(`Erstellt am: ${date}, ${time} Uhr`),  
-            14,  
-            37  
-        );  
-  
         const tableData = players.map(player => {  
-            const stats =  
-                getPlayerStats(player.id);  
+            const stats = getPlayerStats(player.id);  
   
             return [  
-                pdfText(player.name),  
+                player.name,  
                 stats.goals,  
                 stats.assists,  
                 stats.saves,  
@@ -1201,9 +1023,18 @@
             ];  
         });  
   
-        doc.autoTable({  
-            startY: 45,  
+        doc.setFontSize(18);  
+        doc.text("POWERPLAY – Spielstatistik", 14, 18);  
   
+        doc.setFontSize(10);  
+        doc.text(  
+            `Erstellt am: ${new Date().toLocaleString("de-DE")}`,  
+            14,  
+            25  
+        );  
+  
+        doc.autoTable({  
+            startY: 32,  
             head: [[  
                 "Spieler",  
                 "Tore",  
@@ -1212,28 +1043,16 @@
                 "7-Meter",  
                 "Fehlwürfe",  
                 "7m Fehlwürfe",  
-                "Gesamt"  
+                "Gesamtaktionen"  
             ]],  
-  
             body: tableData,  
-  
-            theme: "grid",  
-  
             styles: {  
                 fontSize: 8,  
-                cellPadding: 3  
+                halign: "center"  
             },  
-  
             headStyles: {  
-                fillColor: [29, 78, 216],  
-                textColor: 255,  
-                halign: "center"  
+                fillColor: [29, 78, 216]  
             },  
-  
-            bodyStyles: {  
-                halign: "center"  
-            },  
-  
             columnStyles: {  
                 0: {  
                     halign: "left"  
@@ -1241,203 +1060,75 @@
             }  
         });  
   
-        const currentY =  
-            doc.lastAutoTable.finalY + 15;  
+        doc.save("powerplay-spielstatistik.pdf");  
   
-        doc.setFontSize(15);  
-        doc.setTextColor(29, 78, 216);  
+        showMessage("PDF wurde erzeugt.", false);  
+    });  
   
-        doc.text(  
-            "Ereignisverlauf",  
-            14,  
-            currentY  
-        );  
-  
-        const eventData = events  
-            .map(event => {  
-                const player = players.find(  
-                    player =>  
-                        player.id === event.playerId  
-                );  
-  
-                if (!player) {  
-                    return null;  
-                }  
-  
-                return [  
-                    event.time,  
-                    pdfText(player.name),  
-                    pdfText(actionNames[event.action])  
-                ];  
-            })  
-            .filter(event => event !== null);  
-  
-        if (eventData.length > 0) {  
-            doc.autoTable({  
-                startY: currentY + 5,  
-  
-                head: [[  
-                    "Uhrzeit",  
-                    "Spieler",  
-                    "Aktion"  
-                ]],  
-  
-                body: eventData,  
-  
-                theme: "striped",  
-  
-                styles: {  
-                    fontSize: 10,  
-                    cellPadding: 4  
-                },  
-  
-                headStyles: {  
-                    fillColor: [124, 58, 237],  
-                    textColor: 255  
-                }  
-            });  
-        } else {  
-            doc.setFontSize(10);  
-            doc.setTextColor(90, 90, 90);  
-  
-            doc.text(  
-                "Es wurden noch keine Aktionen erfasst.",  
-                14,  
-                currentY + 8  
-            );  
-        }  
-  
-        const fileDate =  
-            date.replace(/\./g, "-");  
-  
-        doc.save(  
-            `POWERPLAY-Spielueberblick-${fileDate}.pdf`  
-        );  
-  
-        showMessage(  
-            "PDF wurde erfolgreich erzeugt.",  
-            false  
-        );  
-    }  
-  
-    function createExcel() {  
+    excelButton.addEventListener("click", () => {  
         if (players.length === 0) {  
             showMessage(  
-                "Es sind noch keine Spieler vorhanden."  
+                "Es sind keine Spielerdaten für den Excel-Export vorhanden."  
             );  
-  
             return;  
         }  
   
-        if (typeof XLSX === "undefined") {  
-            showMessage(  
-                "Die Excel-Bibliothek konnte nicht geladen werden."  
-            );  
-  
-            return;  
-        }  
-  
-        const date =  
-            new Date().toLocaleDateString("de-DE");  
-  
-        const statsData = players.map(player => {  
-            const stats =  
-                getPlayerStats(player.id);  
+        const statisticsData = players.map(player => {  
+            const stats = getPlayerStats(player.id);  
   
             return {  
-                "Spieler": player.name,  
-                "Tore": stats.goals,  
-                "Assists": stats.assists,  
-                "Paraden": stats.saves,  
+                Spieler: player.name,  
+                Tore: stats.goals,  
+                Assists: stats.assists,  
+                Paraden: stats.saves,  
                 "7-Meter": stats.penalties,  
-                "Fehlwürfe": stats.misses,  
+                Fehlwürfe: stats.misses,  
                 "7m Fehlwürfe": stats.penaltyMisses,  
-                "Gesamtaktionen": stats.total  
+                Gesamtaktionen: stats.total  
             };  
         });  
   
-        const eventData = events  
-            .map(event => {  
-                const player = players.find(  
-                    player =>  
-                        player.id === event.playerId  
-                );  
-  
-                if (!player) {  
-                    return null;  
-                }  
-  
-                return {  
-                    "Uhrzeit": event.time,  
-                    "Spieler": player.name,  
-                    "Aktion": actionNames[event.action]  
-                };  
-            })  
-            .filter(event => event !== null);  
-  
-        const workbook =  
-            XLSX.utils.book_new();  
-  
-        const statsWorksheet =  
-            XLSX.utils.json_to_sheet(statsData);  
-  
-        const eventWorksheet =  
-            XLSX.utils.json_to_sheet(  
-                eventData.length > 0  
-                    ? eventData  
-                    : [{  
-                        "Uhrzeit": "",  
-                        "Spieler": "",  
-                        "Aktion":  
-                            "Keine Aktionen erfasst"  
-                    }]  
+        const eventData = events.map(event => {  
+            const player = players.find(  
+                player => player.id === event.playerId  
             );  
   
-        statsWorksheet["!cols"] = [  
-            { wch: 25 },  
-            { wch: 10 },  
-            { wch: 12 },  
-            { wch: 12 },  
-            { wch: 18 },  
-            { wch: 12 },  
-            { wch: 15 },  
-            { wch: 18 }  
-        ];  
+            return {  
+                Uhrzeit: event.time,  
+                Spieler: player ? player.name : "Unbekannt",  
+                Aktion: actionNames[event.action] || event.action  
+            };  
+        });  
   
-        eventWorksheet["!cols"] = [  
-            { wch: 12 },  
-            { wch: 25 },  
-            { wch: 25 }  
-        ];  
+        const workbook = XLSX.utils.book_new();  
   
-        XLSX.utils.book_append_sheet(  
-            workbook,  
-            statsWorksheet,  
-            "Spielüberblick"  
+        const statisticsSheet = XLSX.utils.json_to_sheet(  
+            statisticsData  
+        );  
+  
+        const eventSheet = XLSX.utils.json_to_sheet(  
+            eventData  
         );  
   
         XLSX.utils.book_append_sheet(  
             workbook,  
-            eventWorksheet,  
+            statisticsSheet,  
+            "Spielstatistik"  
+        );  
+  
+        XLSX.utils.book_append_sheet(  
+            workbook,  
+            eventSheet,  
             "Ereignisverlauf"  
         );  
   
-        const fileDate =  
-            date.replace(/\./g, "-");  
-  
         XLSX.writeFile(  
             workbook,  
-            `POWERPLAY-Spielueberblick-${fileDate}.xlsx`  
+            "powerplay-spielstatistik.xlsx"  
         );  
   
-        showMessage(  
-            "Excel-Datei wurde erfolgreich heruntergeladen.",  
-            false  
-        );  
-    }  
-  
-    pdfButton.addEventListener("click", createPdf);  
-    excelButton.addEventListener("click", createExcel);  
+        showMessage("Excel-Datei wurde heruntergeladen.", false);  
+    });  
   
     renderPlayers();  
     renderStats();  
@@ -1445,4 +1136,4 @@
 </script>  
   
 </body>  
-</html> 
+</html>  
