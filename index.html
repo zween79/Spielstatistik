@@ -1,11 +1,18 @@
-html  
 <!DOCTYPE html>  
 <html lang="de">  
 <head>  
     <meta charset="UTF-8">  
     <meta name="viewport" content="width=device-width, initial-scale=1.0">  
   
-    <title>POWERPLAY – Spielstatistik</title>  
+    <title>POWERPLAY – Handball-Spielstatistik</title>  
+  
+    <!-- Moderne Schriftart -->  
+    <link rel="preconnect" href="https://fonts.googleapis.com">  
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>  
+    <link  
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"  
+        rel="stylesheet"  
+    >  
   
     <!-- PDF-Bibliotheken -->  
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>  
@@ -15,57 +22,203 @@ html
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>  
   
     <style>  
+        :root {  
+            --background: #f4f7fb;  
+            --surface: rgba(255, 255, 255, 0.94);  
+            --surface-soft: #f8fafc;  
+            --text: #172033;  
+            --text-muted: #64748b;  
+            --primary: #2563eb;  
+            --primary-dark: #1d4ed8;  
+            --primary-light: #dbeafe;  
+            --success: #16a34a;  
+            --success-dark: #15803d;  
+            --danger: #dc2626;  
+            --danger-dark: #b91c1c;  
+            --purple: #7c3aed;  
+            --orange: #ea580c;  
+            --border: #e2e8f0;  
+            --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);  
+            --shadow-hover: 0 15px 35px rgba(15, 23, 42, 0.13);  
+        }  
+  
         * {  
             box-sizing: border-box;  
         }  
   
+        html {  
+            scroll-behavior: smooth;  
+        }  
+  
         body {  
             margin: 0;  
-            font-family: Arial, sans-serif;  
-            background: #eef2f7;  
-            color: #1f2937;  
+            min-height: 100vh;  
+            font-family: "Inter", Arial, sans-serif;  
+            background:  
+                radial-gradient(circle at 10% 0%, #dbeafe 0, transparent 28%),  
+                radial-gradient(circle at 90% 15%, #e9d5ff 0, transparent 25%),  
+                var(--background);  
+            color: var(--text);  
+        }  
+  
+        button,  
+        input {  
+            font: inherit;  
+        }  
+  
+        button {  
+            border: none;  
+            border-radius: 10px;  
+            padding: 11px 16px;  
+            cursor: pointer;  
+            font-size: 14px;  
+            font-weight: 700;  
+            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;  
+        }  
+  
+        button:hover {  
+            transform: translateY(-2px);  
+            box-shadow: 0 7px 16px rgba(15, 23, 42, 0.16);  
+        }  
+  
+        button:active {  
+            transform: translateY(0);  
+        }  
+  
+        button:focus-visible,  
+        input:focus-visible {  
+            outline: 3px solid rgba(37, 99, 235, 0.28);  
+            outline-offset: 2px;  
         }  
   
         header {  
-            background: #1d4ed8;  
+            position: relative;  
+            overflow: hidden;  
+            padding: 48px 20px 58px;  
             color: white;  
-            padding: 30px 15px;  
             text-align: center;  
+            background:  
+                linear-gradient(135deg, rgba(30, 64, 175, 0.95), rgba(37, 99, 235, 0.9)),  
+                #1d4ed8;  
+        }  
+  
+        header::before,  
+        header::after {  
+            position: absolute;  
+            border-radius: 50%;  
+            content: "";  
+            opacity: 0.16;  
+            background: white;  
+        }  
+  
+        header::before {  
+            width: 320px;  
+            height: 320px;  
+            top: -170px;  
+            left: -85px;  
+        }  
+  
+        header::after {  
+            width: 420px;  
+            height: 420px;  
+            right: -160px;  
+            bottom: -280px;  
+        }  
+  
+        .brand {  
+            position: relative;  
+            z-index: 1;  
+        }  
+  
+        .brand-badge {  
+            display: inline-flex;  
+            align-items: center;  
+            gap: 8px;  
+            padding: 7px 12px;  
+            margin-bottom: 13px;  
+            border: 1px solid rgba(255, 255, 255, 0.24);  
+            border-radius: 999px;  
+            background: rgba(255, 255, 255, 0.13);  
+            font-size: 12px;  
+            font-weight: 700;  
+            letter-spacing: 0.08em;  
+            text-transform: uppercase;  
+            backdrop-filter: blur(5px);  
         }  
   
         header h1 {  
-            margin: 0 0 8px;  
-            font-size: 30px;  
+            margin: 0;  
+            font-size: clamp(32px, 5vw, 48px);  
+            font-weight: 800;  
+            letter-spacing: -0.045em;  
         }  
   
         header p {  
-            margin: 0;  
-            font-size: 17px;  
+            margin: 10px 0 0;  
+            color: rgba(255, 255, 255, 0.84);  
+            font-size: 16px;  
         }  
   
         main {  
-            max-width: 1200px;  
-            margin: 25px auto;  
-            padding: 0 15px;  
+            max-width: 1240px;  
+            margin: -28px auto 0;  
+            padding: 0 18px 45px;  
         }  
   
-        .grid {  
+        .dashboard-grid {  
             display: grid;  
-            grid-template-columns: 1fr 1fr;  
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);  
             gap: 20px;  
         }  
   
         .card {  
-            background: white;  
-            border-radius: 12px;  
-            padding: 20px;  
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);  
+            margin-bottom: 20px;  
+            padding: 24px;  
+            border: 1px solid rgba(226, 232, 240, 0.9);  
+            border-radius: 18px;  
+            background: var(--surface);  
+            box-shadow: var(--shadow);  
+            backdrop-filter: blur(12px);  
+        }  
+  
+        .card-header {  
+            display: flex;  
+            align-items: center;  
+            justify-content: space-between;  
+            gap: 16px;  
             margin-bottom: 20px;  
         }  
   
+        .title-group {  
+            display: flex;  
+            align-items: center;  
+            gap: 12px;  
+        }  
+  
+        .title-icon {  
+            display: grid;  
+            width: 42px;  
+            height: 42px;  
+            flex: 0 0 auto;  
+            place-items: center;  
+            border-radius: 12px;  
+            background: var(--primary-light);  
+            color: var(--primary-dark);  
+            font-size: 20px;  
+        }  
+  
         h2 {  
-            margin-top: 0;  
-            color: #1d4ed8;  
+            margin: 0;  
+            color: var(--text);  
+            font-size: 18px;  
+            font-weight: 800;  
+            letter-spacing: -0.025em;  
+        }  
+  
+        .subtitle {  
+            margin: 4px 0 0;  
+            color: var(--text-muted);  
+            font-size: 13px;  
         }  
   
         form {  
@@ -74,142 +227,195 @@ html
         }  
   
         input {  
-            flex: 1;  
+            width: 100%;  
             min-width: 0;  
-            padding: 12px;  
-            border: 1px solid #cbd5e1;  
-            border-radius: 6px;  
-            font-size: 16px;  
+            padding: 13px 14px;  
+            border: 1px solid var(--border);  
+            border-radius: 10px;  
+            outline: none;  
+            color: var(--text);  
+            background: white;  
+            font-size: 14px;  
+            transition: border-color 0.18s ease, box-shadow 0.18s ease;  
         }  
   
-        button {  
-            border: none;  
-            border-radius: 6px;  
-            padding: 11px 15px;  
-            cursor: pointer;  
-            font-size: 15px;  
-            transition: 0.2s;  
+        input::placeholder {  
+            color: #94a3b8;  
         }  
   
-        button:hover {  
-            opacity: 0.85;  
-            transform: translateY(-1px);  
+        input:focus {  
+            border-color: var(--primary);  
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.11);  
         }  
   
         .add-button {  
-            background: #16a34a;  
+            flex: 0 0 auto;  
             color: white;  
+            background: linear-gradient(135deg, #22c55e, var(--success-dark));  
         }  
   
         .reset-button {  
-            background: #dc2626;  
+            width: 100%;  
+            margin-top: 16px;  
+            color: var(--danger);  
+            border: 1px solid #fecaca;  
+            background: #fff5f5;  
+        }  
+  
+        .reset-button:hover {  
             color: white;  
-            margin-top: 15px;  
+            border-color: var(--danger);  
+            background: var(--danger);  
         }  
   
         .player-list {  
             display: flex;  
             flex-direction: column;  
-            gap: 8px;  
-            margin-top: 15px;  
+            gap: 9px;  
+            margin-top: 16px;  
         }  
   
         .player-row {  
             display: flex;  
-            gap: 8px;  
+            gap: 9px;  
         }  
   
         .player-select-button {  
-            flex: 1;  
-            background: #e0e7ff;  
+            display: flex;  
+            align-items: center;  
+            gap: 10px;  
+            width: 100%;  
+            min-width: 0;  
             color: #1e3a8a;  
             text-align: left;  
+            background: #eff6ff;  
+        }  
+  
+        .player-select-button::before {  
+            display: grid;  
+            width: 26px;  
+            height: 26px;  
+            flex: 0 0 auto;  
+            place-items: center;  
+            border-radius: 50%;  
+            content: "👤";  
+            background: #dbeafe;  
+            font-size: 13px;  
+        }  
+  
+        .player-select-button:hover {  
+            color: white;  
+            background: var(--primary);  
+        }  
+  
+        .player-select-button:hover::before {  
+            background: rgba(255, 255, 255, 0.2);  
         }  
   
         .delete-player-button,  
         .delete-event-button {  
-            background: #dc2626;  
             color: white;  
+            background: var(--danger);  
         }  
   
         .delete-player-button {  
-            padding: 8px 12px;  
+            padding: 8px 13px;  
         }  
   
         .delete-event-button {  
-            padding: 6px 10px;  
-            font-size: 13px;  
+            padding: 7px 10px;  
+            border-radius: 8px;  
+            font-size: 12px;  
         }  
   
-        .empty {  
-            color: #64748b;  
-            font-style: italic;  
+        .action-help {  
+            margin: 0;  
+            padding: 16px;  
+            border: 1px solid #dbeafe;  
+            border-radius: 12px;  
+            color: #334155;  
+            background: #f8fbff;  
+            font-size: 14px;  
+            line-height: 1.6;  
+        }  
+  
+        .action-help strong {  
+            color: var(--primary-dark);  
         }  
   
         .message {  
-            min-height: 22px;  
-            margin-top: 15px;  
-            font-weight: bold;  
+            min-height: 24px;  
+            margin-top: 16px;  
+            font-size: 13px;  
+            font-weight: 700;  
         }  
   
         .overview-header,  
         .event-header {  
             display: flex;  
-            justify-content: space-between;  
             align-items: center;  
-            gap: 15px;  
-        }  
-  
-        .overview-header h2,  
-        .event-header h2 {  
-            margin-bottom: 0;  
+            justify-content: space-between;  
+            gap: 16px;  
         }  
   
         .export-buttons {  
             display: flex;  
-            gap: 10px;  
             flex-wrap: wrap;  
+            gap: 9px;  
         }  
   
         .pdf-button {  
-            background: #7c3aed;  
             color: white;  
-            font-weight: bold;  
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);  
         }  
   
         .excel-button {  
-            background: #15803d;  
             color: white;  
-            font-weight: bold;  
+            background: linear-gradient(135deg, #22c55e, #15803d);  
         }  
   
         .clear-events-button {  
-            background: #dc2626;  
+            color: var(--danger);  
+            border: 1px solid #fecaca;  
+            background: #fff5f5;  
+        }  
+  
+        .clear-events-button:hover {  
             color: white;  
-            font-weight: bold;  
+            border-color: var(--danger);  
+            background: var(--danger);  
         }  
   
         .table-container {  
             overflow-x: auto;  
+            margin-top: 20px;  
+            border: 1px solid var(--border);  
+            border-radius: 13px;  
         }  
   
         table {  
             width: 100%;  
-            min-width: 850px;  
+            min-width: 820px;  
             border-collapse: collapse;  
-            margin-top: 15px;  
+            overflow: hidden;  
+            background: white;  
         }  
   
         th,  
         td {  
-            padding: 12px;  
+            padding: 14px 15px;  
             text-align: center;  
-            border-bottom: 1px solid #e5e7eb;  
+            border-bottom: 1px solid #edf2f7;  
+            font-size: 13px;  
         }  
   
         th {  
-            background: #eff6ff;  
-            color: #1e3a8a;  
+            color: #334155;  
+            background: #f8fafc;  
+            font-size: 11px;  
+            font-weight: 800;  
+            letter-spacing: 0.04em;  
+            text-transform: uppercase;  
         }  
   
         th:first-child,  
@@ -217,36 +423,77 @@ html
             text-align: left;  
         }  
   
+        tbody tr {  
+            transition: background 0.16s ease;  
+        }  
+  
+        tbody tr:hover {  
+            background: #f8fbff;  
+        }  
+  
+        tbody tr:last-child td {  
+            border-bottom: none;  
+        }  
+  
+        td strong {  
+            display: inline-block;  
+            min-width: 28px;  
+            padding: 5px 8px;  
+            border-radius: 7px;  
+            color: var(--primary-dark);  
+            background: var(--primary-light);  
+        }  
+  
         .event-list {  
-            list-style: none;  
+            display: flex;  
+            flex-direction: column;  
+            gap: 2px;  
+            max-height: 370px;  
             padding: 0;  
-            margin: 0;  
-            max-height: 350px;  
+            margin: 18px 0 0;  
             overflow-y: auto;  
+            list-style: none;  
         }  
   
         .event-item {  
             display: flex;  
-            justify-content: space-between;  
             align-items: center;  
-            gap: 10px;  
-            padding: 10px 0;  
-            border-bottom: 1px solid #e5e7eb;  
+            justify-content: space-between;  
+            gap: 12px;  
+            padding: 12px 4px;  
+            border-bottom: 1px solid #edf2f7;  
+        }  
+  
+        .event-item:last-child {  
+            border-bottom: none;  
         }  
   
         .event-text {  
             flex: 1;  
+            color: #334155;  
+            font-size: 13px;  
+            line-height: 1.5;  
         }  
   
+        .empty {  
+            padding: 16px 0;  
+            color: var(--text-muted);  
+            font-size: 14px;  
+            font-style: italic;  
+            text-align: center !important;  
+        }  
+  
+        /* Modal */  
         .modal-overlay {  
             display: none;  
             position: fixed;  
             z-index: 1000;  
             inset: 0;  
-            background: rgba(15, 23, 42, 0.65);  
             align-items: center;  
             justify-content: center;  
-            padding: 15px;  
+            padding: 18px;  
+            background: rgba(15, 23, 42, 0.65);  
+            backdrop-filter: blur(5px);  
         }  
   
         .modal-overlay.visible {  
@@ -255,35 +502,53 @@ html
   
         .modal {  
             width: 100%;  
-            max-width: 500px;  
+            max-width: 530px;  
+            padding: 26px;  
+            border: 1px solid rgba(255, 255, 255, 0.75);  
+            border-radius: 20px;  
             background: white;  
-            border-radius: 14px;  
-            padding: 25px;  
-            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.3);  
-            animation: popup 0.18s ease-out;  
+            box-shadow: 0 25px 65px rgba(15, 23, 42, 0.35);  
+            animation: popup 0.2s ease-out;  
         }  
   
         @keyframes popup {  
             from {  
                 opacity: 0;  
-                transform: scale(0.92);  
+                transform: translateY(12px) scale(0.97);  
             }  
   
             to {  
                 opacity: 1;  
-                transform: scale(1);  
+                transform: translateY(0) scale(1);  
             }  
         }  
   
-        .modal h2 {  
+        .modal-top {  
+            display: flex;  
+            align-items: center;  
+            gap: 12px;  
             margin-bottom: 8px;  
         }  
   
+        .modal-top-icon {  
+            display: grid;  
+            width: 42px;  
+            height: 42px;  
+            place-items: center;  
+            border-radius: 12px;  
+            background: #eff6ff;  
+            font-size: 20px;  
+        }  
+  
+        .modal h2 {  
+            font-size: 20px;  
+        }  
+  
         .modal-player-name {  
-            margin-top: 0;  
-            margin-bottom: 20px;  
-            font-weight: bold;  
-            color: #374151;  
+            margin: 0 0 20px;  
+            color: var(--text-muted);  
+            font-size: 14px;  
+            font-weight: 600;  
         }  
   
         .action-grid {  
@@ -293,65 +558,83 @@ html
         }  
   
         .action-button {  
+            min-height: 58px;  
             color: white;  
-            font-weight: bold;  
+            text-align: left;  
+            font-weight: 800;  
         }  
   
         .goal {  
-            background: #16a34a;  
+            background: linear-gradient(135deg, #22c55e, #15803d);  
         }  
   
         .assist {  
-            background: #9333ea;  
+            background: linear-gradient(135deg, #a855f7, #7e22ce);  
         }  
   
         .save {  
-            background: #0891b2;  
+            background: linear-gradient(135deg, #06b6d4, #0e7490);  
         }  
   
         .penalty {  
-            background: #ea580c;  
+            background: linear-gradient(135deg, #f97316, #c2410c);  
         }  
   
         .miss {  
-            background: #64748b;  
+            background: linear-gradient(135deg, #64748b, #475569);  
         }  
   
         .penalty-miss {  
-            background: #be123c;  
+            background: linear-gradient(135deg, #f43f5e, #be123c);  
         }  
   
         .cancel-button {  
             width: 100%;  
-            margin-top: 18px;  
-            background: #374151;  
+            margin-top: 16px;  
+            color: #475569;  
+            background: #f1f5f9;  
+        }  
+  
+        .cancel-button:hover {  
             color: white;  
+            background: #475569;  
         }  
   
         @media (max-width: 850px) {  
-            .grid {  
+            .dashboard-grid {  
                 grid-template-columns: 1fr;  
             }  
         }  
   
         @media (max-width: 650px) {  
-            form {  
-                flex-direction: column;  
+            header {  
+                padding: 35px 16px 48px;  
             }  
   
+            main {  
+                padding: 0 12px 30px;  
+            }  
+  
+            .card {  
+                padding: 18px;  
+                border-radius: 15px;  
+            }  
+  
+            form,  
             .overview-header,  
             .event-header {  
                 flex-direction: column;  
                 align-items: stretch;  
             }  
   
-            .export-buttons {  
-                flex-direction: column;  
-            }  
-  
+            .add-button,  
             .export-buttons button,  
             .clear-events-button {  
                 width: 100%;  
+            }  
+  
+            .export-buttons {  
+                flex-direction: column;  
             }  
   
             .action-grid {  
@@ -361,10 +644,6 @@ html
             .event-item {  
                 align-items: flex-start;  
             }  
-  
-            header h1 {  
-                font-size: 24px;  
-            }  
         }  
     </style>  
 </head>  
@@ -372,27 +651,39 @@ html
 <body>  
   
 <header>  
-    <h1>POWERPLAY</h1>  
-    <p>Handball-Spielstatistik</p>  
+    <div class="brand">  
+        <div class="brand-badge">⚡ Match Center</div>  
+        <h1>POWERPLAY</h1>  
+        <p>Deine digitale Handball-Spielstatistik</p>  
+    </div>  
 </header>  
   
 <main>  
   
-    <div class="grid">  
+    <div class="dashboard-grid">  
   
         <section class="card">  
-            <h2>1. Spieler verwalten</h2>  
+            <div class="card-header">  
+                <div class="title-group">  
+                    <div class="title-icon">👥</div>  
+                    <div>  
+                        <h2>Spieler verwalten</h2>  
+                        <p class="subtitle">Team für das Spiel vorbereiten</p>  
+                    </div>  
+                </div>  
+            </div>  
   
             <form id="playerForm">  
                 <input  
                     type="text"  
                     id="playerName"  
-                    placeholder="Spielernamen eingeben"  
+                    placeholder="Name des Spielers eingeben"  
                     required  
+                    autocomplete="off"  
                 >  
   
                 <button type="submit" class="add-button">  
-                    Spieler hinzufügen  
+                    + Spieler hinzufügen  
                 </button>  
             </form>  
   
@@ -401,16 +692,25 @@ html
             </div>  
   
             <button id="resetButton" class="reset-button">  
-                Spiel zurücksetzen  
+                Spiel vollständig zurücksetzen  
             </button>  
         </section>  
   
         <section class="card">  
-            <h2>2. Aktion erfassen</h2>  
+            <div class="card-header">  
+                <div class="title-group">  
+                    <div class="title-icon">📋</div>  
+                    <div>  
+                        <h2>Aktion erfassen</h2>  
+                        <p class="subtitle">Schnell und übersichtlich dokumentieren</p>  
+                    </div>  
+                </div>  
+            </div>  
   
-            <p>  
-                Klicke auf einen Spielernamen. Anschließend öffnet sich  
-                automatisch das Aktionsmenü.  
+            <p class="action-help">  
+                <strong>So funktioniert es:</strong><br>  
+                Klicke links auf einen Spielernamen und wähle anschließend  
+                die gewünschte Aktion aus.  
             </p>  
   
             <div id="message" class="message"></div>  
@@ -420,7 +720,13 @@ html
   
     <section class="card">  
         <div class="overview-header">  
-            <h2>Spielüberblick</h2>  
+            <div class="title-group">  
+                <div class="title-icon">📊</div>  
+                <div>  
+                    <h2>Spielüberblick</h2>  
+                    <p class="subtitle">Alle Spielerstatistiken auf einen Blick</p>  
+                </div>  
+            </div>  
   
             <div class="export-buttons">  
                 <button id="pdfButton" class="pdf-button">  
@@ -461,17 +767,21 @@ html
   
     <section class="card">  
         <div class="event-header">  
-            <h2>Ereignisverlauf</h2>  
+            <div class="title-group">  
+                <div class="title-icon">🕒</div>  
+                <div>  
+                    <h2>Ereignisverlauf</h2>  
+                    <p class="subtitle">Zuletzt erfasste Spielaktionen</p>  
+                </div>  
+            </div>  
   
             <button id="clearEventsButton" class="clear-events-button">  
-                Ereignisverlauf löschen  
+                Verlauf löschen  
             </button>  
         </div>  
   
         <ul id="eventList" class="event-list">  
-            <li class="empty">  
-                Noch keine Aktionen erfasst.  
-            </li>  
+            <li class="empty">Noch keine Aktionen erfasst.</li>  
         </ul>  
     </section>  
   
@@ -485,7 +795,10 @@ html
         aria-modal="true"  
         aria-labelledby="modalTitle"  
     >  
-        <h2 id="modalTitle">Aktion auswählen</h2>  
+        <div class="modal-top">  
+            <div class="modal-top-icon">⚡</div>  
+            <h2 id="modalTitle">Aktion auswählen</h2>  
+        </div>  
   
         <p id="modalPlayerName" class="modal-player-name"></p>  
   
@@ -516,7 +829,7 @@ html
         </div>  
   
         <button id="cancelButton" class="cancel-button">  
-            Abbruch  
+            Abbrechen  
         </button>  
     </div>  
 </div>  
@@ -554,19 +867,15 @@ html
             Math.random().toString(36).substring(2, 10);  
     }  
   
-    players = players.map((player, index) => {  
-        return {  
-            ...player,  
-            id: player.id || createUniqueId("player-" + index)  
-        };  
-    });  
+    players = players.map((player, index) => ({  
+        ...player,  
+        id: player.id || createUniqueId("player-" + index)  
+    }));  
   
-    events = events.map((event, index) => {  
-        return {  
-            ...event,  
-            id: event.id || createUniqueId("event-" + index)  
-        };  
-    });  
+    events = events.map((event, index) => ({  
+        ...event,  
+        id: event.id || createUniqueId("event-" + index)  
+    }));  
   
     saveData();  
   
@@ -577,10 +886,7 @@ html
   
     function showMessage(text, isError = true) {  
         message.textContent = text;  
-  
-        message.style.color = isError  
-            ? "#dc2626"  
-            : "#16a34a";  
+        message.style.color = isError ? "#dc2626" : "#16a34a";  
   
         setTimeout(() => {  
             message.textContent = "";  
@@ -812,7 +1118,6 @@ html
   
             listItem.appendChild(eventText);  
             listItem.appendChild(deleteButton);  
-  
             eventList.appendChild(listItem);  
         });  
     }  
@@ -1051,7 +1356,7 @@ html
                 halign: "center"  
             },  
             headStyles: {  
-                fillColor: [29, 78, 216]  
+                fillColor: [37, 99, 235]  
             },  
             columnStyles: {  
                 0: {  
@@ -1061,7 +1366,6 @@ html
         });  
   
         doc.save("powerplay-spielstatistik.pdf");  
-  
         showMessage("PDF wurde erzeugt.", false);  
     });  
   
@@ -1102,13 +1406,8 @@ html
   
         const workbook = XLSX.utils.book_new();  
   
-        const statisticsSheet = XLSX.utils.json_to_sheet(  
-            statisticsData  
-        );  
-  
-        const eventSheet = XLSX.utils.json_to_sheet(  
-            eventData  
-        );  
+        const statisticsSheet = XLSX.utils.json_to_sheet(statisticsData);  
+        const eventSheet = XLSX.utils.json_to_sheet(eventData);  
   
         XLSX.utils.book_append_sheet(  
             workbook,  
@@ -1122,10 +1421,7 @@ html
             "Ereignisverlauf"  
         );  
   
-        XLSX.writeFile(  
-            workbook,  
-            "powerplay-spielstatistik.xlsx"  
-        );  
+        XLSX.writeFile(workbook, "powerplay-spielstatistik.xlsx");  
   
         showMessage("Excel-Datei wurde heruntergeladen.", false);  
     });  
