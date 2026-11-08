@@ -1519,20 +1519,18 @@
     doc.setTextColor(80, 80, 80);  
     doc.text(`Erstellt am: ${createdAt}`, 14, 25);  
   
-    const eventData = [...events]  
-        .reverse()  
-        .map((event, index) => {  
-            const player = players.find(  
-                player => player.id === event.playerId  
-            );  
+   const eventData = events.map((event, index) => {  
+    const player = players.find(  
+        player => player.id === event.playerId  
+    );  
   
-            return [  
-                index + 1,  
-                event.time,  
-                player ? player.name : "Unbekannt",  
-                actionNames[event.action] || event.action  
-            ];  
-        });  
+    return [  
+        index + 1,  
+        event.time,  
+        player ? player.name : "Unbekannt",  
+        actionNames[event.action] || event.action  
+    ];  
+});    
   
     if (eventData.length === 0) {  
         doc.setFontSize(12);  
