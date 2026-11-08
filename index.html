@@ -1016,8 +1016,17 @@
         ...event,  
         id: event.id || createUniqueId("event-" + index)  
     }));  
-  
+    sortPlayersAlphabetically();  
+    
     saveData();  
+
+    function sortPlayersAlphabetically() {  
+    players.sort((a, b) =>  
+        a.name.localeCompare(b.name, "de", {  
+            sensitivity: "base"  
+        })  
+    );  
+}  
   
     function saveData() {  
         localStorage.setItem("players", JSON.stringify(players));  
@@ -1308,7 +1317,9 @@
             id: createUniqueId(),  
             name: name  
         });  
-  
+
+        sortPlayersAlphabetically(); 
+        
         saveData();  
         renderPlayers();  
         renderStats();  
