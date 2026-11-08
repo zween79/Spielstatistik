@@ -1442,73 +1442,162 @@
         );  
     });  
   
-    pdfButton.addEventListener("click", () => {  
-        if (players.length === 0) {  
-            showMessage(  
-                "Es sind keine Spielerdaten für den PDF-Export vorhanden."  
-            );  
-            return;  
+   pdfButton.addEventListener("click", () => {  
+    if (players.length === 0) {  
+        showMessage(  
+            "Es sind keine Spielerdaten für den PDF-Export vorhanden."  
+        );  
+        return;  
+    }  
+  
+    const { jsPDF } = window.jspdf;  
+    const doc = new jsPDF();  
+  
+    const createdAt = new Date().toLocaleString("de-DE");  
+  
+    const statisticsData = players.map(player => {  
+        const stats = getPlayerStats(player.id);  
+  
+        return [  
+            player.name,  
+            stats.goals,  
+            stats.assists,  
+            stats.saves,  
+            stats.penalties,  
+            stats.misses,  
+            stats.penaltyMisses,  
+            stats.total  
+        ];  
+    });  
+  
+    /* Seite 1: Spielerstatistik */  
+    doc.setFontSize(18);  
+    doc.setTextColor(37, 99, 235);  
+    doc.text("POWERPLAY – Spielstatistik", 14, 18);  
+  
+    doc.setFontSize(10);  
+    doc.setTextColor(80, 80, 80);  
+    doc.text(`Erstellt am: ${createdAt}`, 14, 25);  
+  
+    doc.autoTable({  
+        startY: 32,  
+        head: [[  
+            "Spieler",  
+            "Tore",  
+            "Assists",  
+            "Paraden",  
+            "7-Meter",  
+            "Fehlwürfe",  
+            "7m Fehlwürfe",  
+            "Gesamtaktionen"  
+        ]],  
+        body: statisticsData,  
+        styles: {  
+            fontSize: 8,  
+            halign: "center"  
+        },  
+        headStyles: {  
+            fillColor: [37, 99, 235],  
+            textColor: [255, 255, 255],  
+            fontStyle: "bold"  
+        },  
+        columnStyles: {  
+            0: {  
+                halign: "left"  
+            }  
         }  
+    });  
   
-        const { jsPDF } = window.jspdf;  
-        const doc = new jsPDF();  
+    /* Seite 2: Ereignisverlauf */  
+    doc.addPage();  
   
-        const tableData = players.map(player => {  
-            const stats = getPlayerStats(player.id);  
+    doc.setFontSize(18);  
+    doc.setTextColor(124, 58, 237);  
+    doc.text("POWERPLAY – Spielverlauf", 14, 18);  
+  
+    doc.setFontSize(10);  
+    doc.setTextColor(80, 80, 80);  
+    doc.text(`Erstellt am: ${createdAt}`, 14, 25);  
+  
+    const eventData = [...events]  
+        .reverse()  
+        .map((event, index) => {  
+            const player = players.find(  
+                player => player.id === event.playerId  
+            );  
   
             return [  
-                player.name,  
-                stats.goals,  
-                stats.assists,  
-                stats.saves,  
-                stats.penalties,  
-                stats.misses,  
-                stats.penaltyMisses,  
-                stats.total  
+                index + 1,  
+                event.time,  
+                player ? player.name : "Unbekannt",  
+                actionNames[event.action] || event.action  
             ];  
         });  
   
-        doc.setFontSize(18);  
-        doc.text("POWERPLAY – Spielstatistik", 14, 18);  
-  
-        doc.setFontSize(10);  
+    if (eventData.length === 0) {  
+        doc.setFontSize(12);  
+        doc.setTextColor(100, 116, 139);  
         doc.text(  
-            `Erstellt am: ${new Date().toLocaleString("de-DE")}`,  
+            "Für dieses Spiel wurden keine Aktionen erfasst.",  
             14,  
-            25  
+            38  
         );  
-  
+    } else {  
         doc.autoTable({  
             startY: 32,  
             head: [[  
+                "Nr.",  
+                "Uhrzeit",  
                 "Spieler",  
-                "Tore",  
-                "Assists",  
-                "Paraden",  
-                "7-Meter",  
-                "Fehlwürfe",  
-                "7m Fehlwürfe",  
-                "Gesamtaktionen"  
+                "Aktion"  
             ]],  
-            body: tableData,  
+            body: eventData,  
             styles: {  
-                fontSize: 8,  
-                halign: "center"  
+                fontSize: 9,  
+                cellPadding: 3  
             },  
             headStyles: {  
-                fillColor: [37, 99, 235]  
+                fillColor: [124, 58, 237],  
+                textColor: [255, 255, 255],  
+                fontStyle: "bold"  
             },  
             columnStyles: {  
                 0: {  
-                    halign: "left"  
+                    halign: "center",  
+                    cellWidth: 15  
+                },  
+                1: {  
+                    halign: "center",  
+                    cellWidth: 30  
+                },  
+                2: {  
+                    cellWidth: 65  
+                },  
+                3: {  
+                    cellWidth: 70  
                 }  
+            },  
+            didDrawPage: data => {  
+                const pageNumber = doc.internal.getNumberOfPages();  
+  
+                doc.setFontSize(8);  
+                doc.setTextColor(100, 116, 139);  
+                doc.text(  
+                    `Seite ${pageNumber}`,  
+                    data.settings.margin.left,  
+                    doc.internal.pageSize.height - 10  
+                );  
             }  
         });  
+    }  
   
-        doc.save("powerplay-spielstatistik.pdf");  
-        showMessage("PDF wurde erzeugt.", false);  
-    });  
+    doc.save("powerplay-spielstatistik.pdf");  
   
+    showMessage(  
+        "PDF mit Spielstatistik und Spielverlauf wurde erzeugt.",  
+        false  
+    );  
+});    
     excelButton.addEventListener("click", () => {  
         if (players.length === 0) {  
             showMessage(  
