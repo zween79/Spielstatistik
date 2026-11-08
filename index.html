@@ -1021,11 +1021,40 @@
     saveData();  
 
     function sortPlayersAlphabetically() {  
-    players.sort((a, b) =>  
-        a.name.localeCompare(b.name, "de", {  
+    players.sort((a, b) => {  
+        const getLeadingNumber = name => {  
+            const match = name.match(/^\s*#?\s*(\d+)/);  
+            return match ? Number(match[1]) : null;  
+        };  
+  
+        const numberA = getLeadingNumber(a.name);  
+        const numberB = getLeadingNumber(b.name);  
+  
+        /* Beide Namen beginnen mit einer Zahl */  
+        if (numberA !== null && numberB !== null) {  
+            if (numberA !== numberB) {  
+                return numberA - numberB;  
+            }  
+  
+            return a.name.localeCompare(b.name, "de", {  
+                sensitivity: "base"  
+            });  
+        }  
+  
+        /* Namen mit Nummer stehen vor Namen ohne Nummer */  
+        if (numberA !== null) {  
+            return -1;  
+        }  
+  
+        if (numberB !== null) {  
+            return 1;  
+        }  
+  
+        /* Namen ohne führende Zahl: alphabetisch sortieren */  
+        return a.name.localeCompare(b.name, "de", {  
             sensitivity: "base"  
-        })  
-    );  
+        });  
+    });  
 }  
   
     function saveData() {  
